@@ -57,6 +57,40 @@ be percent-encoded. There is no raw-markup escape hatch. A `fit` grid needs a
 parent with a definite width and height. Visual order follows placement while
 reading order follows template order.
 
+## Components and state
+
+```python
+from spacial_ui import Component, Session, State, html
+
+class Counter(Component):
+    count = State(0)
+
+    def increment(self):
+        self.count += 1
+
+    def render(self):
+        return html(t"""
+            <section>
+                <p>Actions: {self.count}</p>
+                <button type="button" on_click={self.increment}>Add one</button>
+            </section>
+        """)
+
+session = Session(Counter())
+first = session.render()
+second = session.dispatch(first.event_ids[0], first.version)
+assert "Actions: 1" in second.markup
+```
+
+State defaults are copied per instance. Retain child component instances on the
+parent to preserve their state, then interpolate them as children. Rendering
+reevaluates the t-string; it does not make a previously compiled template reactive.
+Click handlers run synchronously without arguments and return `None`. They bind
+only to semantic buttons; disabled buttons register no event. Every render
+replaces the event allowlist, and session dispatch serializes callbacks and
+rejects stale versions. Callback exceptions invalidate bindings and require a
+page refresh. Ordinary Python side effects are not automatically rolled back.
+
 ## Development
 
 Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
