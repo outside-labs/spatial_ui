@@ -72,9 +72,10 @@ class _Renderer:
         if node.on_click is not None:
             if node.tag != "button":
                 raise TemplateError("on_click requires a semantic button")
-            token = secrets.token_urlsafe(24)
-            self.events[token] = node.on_click
-            attributes.append(f' data-sui-click="{token}"')
+            if ("disabled", True) not in node.attributes:
+                token = secrets.token_urlsafe(24)
+                self.events[token] = node.on_click
+                attributes.append(f' data-sui-click="{token}"')
         identifier = None
         if node.layout:
             identifier = f"g{self.grids}"
