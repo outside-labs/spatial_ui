@@ -12,6 +12,8 @@ from spacial_ui.layout import (
     LayoutError, UnknownTargetError, above, at, below, center_in, left_of, right_of,
 )
 from spacial_ui.rendering import Rendered, render
+from spacial_ui.motion import Transition
+from spacial_ui.server import App
 from spacial_ui.templates import Fragment, TemplateError, html
 
 __version__ = version("spacial-ui")
@@ -23,4 +25,5 @@ __all__ = [
     "Fragment", "Rendered", "TemplateError", "html", "render",
     "CallbackError", "Component", "EventError", "Session", "Snapshot",
     "StaleEventError", "State", "UnknownEventError",
+    "App", "Transition",
 ]

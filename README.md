@@ -3,10 +3,21 @@
 A Python spatial UI engine with square logical grid units, relative placement,
 and Python 3.14 t-string templates. Early development; no release is published.
 
-The initial milestone is a responsive dashboard with semantic HTML and Python
+The first milestone includes a responsive dashboard with semantic HTML and Python
 event handlers. See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the
 architecture, acceptance criteria, and later milestones. Issues and the GitHub
 Project track current work; pull requests record implementation and verification.
+
+## Try the dashboard
+
+```sh
+uv sync --locked
+uv run spacial-ui demo
+```
+
+Open `http://127.0.0.1:8000/`. Add actions, switch between compact and wide canvases,
+type in the scratchpad, and move the tile. The scene uses the same coordinate
+model as the navigation and cards. Use `--port 8001` for another local preview.
 
 ## Spatial layout
 
@@ -90,6 +101,34 @@ only to semantic buttons; disabled buttons register no event. Every render
 replaces the event allowlist, and session dispatch serializes callbacks and
 rejects stale versions. Callback exceptions invalidate bindings and require a
 page refresh. Ordinary Python side effects are not automatically rolled back.
+
+## Run your component
+
+```python
+from spacial_ui import App
+
+App(Counter, title="My workspace").run()  # Counter from the example above
+```
+
+Pass a factory that creates a fresh root component for each browser session.
+The bundled server is for loopback development, with synchronous callbacks and
+in-memory state. Sessions expire after 30 minutes of inactivity; a server restart
+clears their state. Tabs in the same browser share a cookie and component tree;
+an update in one tab makes another tab's event bindings stale, requiring refresh.
+No filesystem directory is served. Custom CSS can be supplied as `stylesheet=`.
+
+Apply `motion={Transition(duration=260, easing="ease-out")}` to a container to
+animate changes in its descendant grid rectangles. Browser layout supplies the
+positions, and the runtime uses Web Animations to move between them. A zero
+duration or the system's reduced-motion preference disables transitions. This
+initial transition API covers placement and container reflow, with advanced
+movement/timeline composition left to the roadmap.
+
+The browser preserves keyed nodes, focus, and live input/textarea/select values
+through updates. Supply stable sibling keys (or unique HTML IDs) for controls
+whose identity matters. Cross-parent moves and server-controlled form editing
+are future work. Scratchpad text stays in the DOM and is not persisted on reload
+or sent to Python by the click-only transport.
 
 ## Development
 

@@ -48,9 +48,9 @@ are squash-merged and verify the final `main` branch.
 | 4 | STATE-01 | Per-instance `State`, component composition, render snapshots, opaque event registration, stale-event rejection, and state-driven rerendering. Test independent sessions and callback failures. | HTML-01 |
 | 5 | WEB-01 | Local development server, browser event/DOM runtime, accessible Outside Labs dashboard, fit example, container reflow, and reduced-motion-aware spatial transitions. Test real HTTP session isolation, invalid requests, and installed assets; inspect the interactive demo in a browser at narrow and wide widths. | STATE-01 |
 
-## Intended authoring shape
+## Authoring shape
 
-The first milestone will make this style executable. Public examples are updated
+This example uses the first milestone's public API. Public examples are updated
 alongside the implementation so they reflect the actual API.
 
 ```python

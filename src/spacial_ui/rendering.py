@@ -69,6 +69,8 @@ class _Renderer:
             attributes.append(f' {name}' if value is True else f' {name}="{escape(str(value), quote=True)}"')
         if node.key and not node.layout:
             attributes.append(f' data-sui-key="{node.key}"')
+        if node.motion:
+            attributes.append(f' data-sui-motion="{node.motion.duration}" data-sui-easing="{node.motion.easing}"')
         if node.on_click is not None:
             if node.tag != "button":
                 raise TemplateError("on_click requires a semantic button")

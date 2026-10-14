@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 from spacial_ui.geometry import Rect
 from spacial_ui.layout import Centered, Grid, Placement, Relative
+from spacial_ui.motion import Transition
 
 
 class TemplateError(ValueError):
@@ -89,6 +90,7 @@ class Element:
     layout: Grid | None = None
     place: Placement | None = None
     on_click: Callable[[], None] | None = None
+    motion: Transition | None = None
 
 
 type Node = Text | Element
@@ -213,12 +215,13 @@ class _Compiler(HTMLParser):
             if name in names:
                 raise TemplateError(f"duplicate attribute {name!r}")
             names.add(name)
-            if name in {"layout", "place", "on_click"}:
+            if name in {"layout", "place", "on_click", "motion"}:
                 match = self.marker.fullmatch(raw or "")
                 if not match:
                     raise TemplateError(f"{name} requires one typed interpolation")
                 value = self.value(match)
-                expected = {"layout": (Grid,), "place": (Rect, Relative, Centered), "on_click": ()}[name]
+                expected = {"layout": (Grid,), "place": (Rect, Relative, Centered),
+                            "on_click": (), "motion": (Transition,)}[name]
                 if (name == "on_click" and not callable(value)) or (name != "on_click" and not isinstance(value, expected)):
                     raise TemplateError(f"invalid {name} directive")
                 directives[name] = value
@@ -249,7 +252,7 @@ class _Compiler(HTMLParser):
             elif type(value) not in (str, int, float, bool):
                 raise TemplateError("attribute values must be scalar")
             else:
-                value = str(value)
+                value = ("true" if value else "false") if type(value) is bool else str(value)
             validate_attribute(name, value)
             attributes.append((name, value))
         if tag in VOID:
