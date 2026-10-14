@@ -24,6 +24,7 @@ jobs:
           enable-cache: true
       - run: uv sync --locked
       - run: uv run --locked python -m unittest discover -s tests -v
+      - run: node --check src/spacial_ui/static/runtime.js
       - run: uv build --no-sources
       - name: Install and verify wheel and source distribution
         shell: bash
@@ -34,8 +35,10 @@ jobs:
             uv pip install --python "$envdir" "$artifact"
             cd "$RUNNER_TEMP"
             if [ -f "$envdir/Scripts/python.exe" ]; then
-              "$envdir/Scripts/python.exe" -I -m spacial_ui --version
+              pythonbin="$envdir/Scripts/python.exe"
             else
-              "$envdir/bin/python" -I -m spacial_ui --version
+              pythonbin="$envdir/bin/python"
             fi
+            "$pythonbin" -I -m spacial_ui --version
+            "$pythonbin" -I -c 'from spacial_ui import Session; from spacial_ui.demo import Dashboard, demo_stylesheet; from importlib.resources import files; assert len(Session(Dashboard()).render().event_ids) == 4; assert demo_stylesheet(); assert files("spacial_ui").joinpath("static", "runtime.js").is_file()'
           done
