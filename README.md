@@ -8,6 +8,26 @@ event handlers. See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the
 architecture, acceptance criteria, and later milestones. Issues and the GitHub
 Project track current work; pull requests record implementation and verification.
 
+## Spatial layout
+
+```python
+from spacial_ui import Grid, at, below, right_of
+
+layout = Grid(12, 8).resolve({
+    "nav": at(0, 0, 12, 2),
+    "sidebar": below("nav", width=3, height=6),
+    "card": right_of("sidebar", width=6, height=3, gap=1),
+})
+assert layout.rects["card"].x == 4
+```
+
+Coordinates and sizes use whole logical cells. Adjacent edges can touch;
+overlapping rectangles require `allow_overlap=True`. Centering rounds an odd
+remainder toward the top/left. `fit` scales one square unit against both container
+dimensions; `reflow` uses the container width and optional `Breakpoint` rules.
+Each breakpoint overrides the base placements independently, rather than
+inheriting overrides from smaller breakpoints.
+
 ## Development
 
 Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
