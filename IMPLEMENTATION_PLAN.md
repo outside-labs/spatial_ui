@@ -74,6 +74,19 @@ class Counter(Component):
         """)
 ```
 
+## First release
+
+Version 0.1.0 packages the first milestone under the MIT license, with Python
+3.14+ and no third-party runtime dependencies. The public repository is
+[`outside-labs/spatial_ui`](https://github.com/outside-labs/spatial_ui), the PyPI
+distribution is `spatial-ui`, and imports use `spatial_ui`.
+
+Before 1.0, minor releases may change the public API; patch releases are intended
+for compatible fixes. The bundled server remains a local development tool.
+REL-01 covers license, metadata, documentation, and distribution verification;
+REL-02 covers trusted publishing and verification of the published release.
+Hosted documentation and live application deployment remain future decisions.
+
 ## Subsequent milestones
 
 These are roadmap proposals, not first-milestone acceptance criteria. Promote
@@ -86,7 +99,6 @@ them from triage with concrete scope after reviewing the running dashboard.
 | WORLD-01 | Virtual world, camera, tile movement, and dialogue example. | Select browser-local execution for frame-sensitive input; keep server callbacks out of the frame loop. |
 | LAYOUT-02 | Content-sized tracks, responsive reparenting, richer constraints, and overflow policies. | Review real dashboard content and stable identity across parent changes. |
 | HOST-01 | Production transport adapter, concurrency policy, deployment documentation. | Choose hosting/ASGI integration and any external dependencies explicitly. |
-| REL-01 | License, compatibility policy, first package release and documentation hosting. | Choose license and release scope; package publication and live deployment require separate authorization. |
 
 ## Verification
 
