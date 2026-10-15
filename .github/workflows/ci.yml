@@ -27,18 +27,4 @@ jobs:
       - run: node --check src/spatial_ui/static/runtime.js
       - run: uv build --no-sources
       - name: Install and verify wheel and source distribution
-        shell: bash
-        run: |
-          for artifact in "$GITHUB_WORKSPACE"/dist/*; do
-            envdir="$RUNNER_TEMP/install-$(basename "$artifact")"
-            uv venv "$envdir" --python 3.14
-            uv pip install --python "$envdir" "$artifact"
-            cd "$RUNNER_TEMP"
-            if [ -f "$envdir/Scripts/python.exe" ]; then
-              pythonbin="$envdir/Scripts/python.exe"
-            else
-              pythonbin="$envdir/bin/python"
-            fi
-            "$pythonbin" -I -m spatial_ui --version
-            "$pythonbin" -I -c 'from spatial_ui import Session; from spatial_ui.demo import Dashboard, demo_stylesheet; from importlib.resources import files; assert len(Session(Dashboard()).render().event_ids) == 4; assert demo_stylesheet(); assert files("spatial_ui").joinpath("static", "runtime.js").is_file()'
-          done
+        run: uv run --locked python scripts/verify_distributions.py
