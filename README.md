@@ -1,7 +1,8 @@
 # spatial_ui
 
 A Python spatial UI engine with square logical grid units, relative placement,
-and Python 3.14 t-string templates. Early development; no release is published.
+and Python 3.14 t-string templates. Version 0.1.0 is an early release under the
+[MIT license](LICENSE), with no third-party runtime dependencies.
 
 The first milestone includes a responsive dashboard with semantic HTML and Python
 event handlers. See [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) for the
@@ -10,10 +11,14 @@ Project track current work; pull requests record implementation and verification
 
 ## Try the dashboard
 
+Requires Python 3.14 or later.
+
 ```sh
-uv sync --locked
-uv run spatial-ui demo
+python -m pip install "spatial-ui==0.1.0"
+spatial-ui demo
 ```
+
+You can also start it with `python -m spatial_ui demo`.
 
 Open `http://127.0.0.1:8000/`. Add actions, switch between compact and wide canvases,
 type in the scratchpad, and move the tile. The scene uses the same coordinate
@@ -130,6 +135,12 @@ whose identity matters. Cross-parent moves and server-controlled form editing
 are future work. Scratchpad text stays in the DOM and is not persisted on reload
 or sent to Python by the click-only transport.
 
+## Compatibility
+
+The public API is early. Before 1.0, minor releases may include breaking changes;
+patch releases are intended for compatible fixes. Pin the package version when
+reproducibility matters. See [CHANGELOG.md](CHANGELOG.md) for release notes.
+
 ## Development
 
 Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
@@ -137,11 +148,10 @@ Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
 ```sh
 uv sync --locked
 uv run spatial-ui --version
+uv run spatial-ui demo
 uv run python -m unittest discover -s tests -v
 uv build
 ```
 
-The package has no third-party runtime dependencies. Tests use the Python
-standard library. CI verifies Linux, macOS, and Windows and installs both built
-distributions outside the checkout. Package publication, hosted documentation,
-and live deployment are separate release decisions.
+Tests use the Python standard library. CI verifies Linux, macOS, and Windows
+and installs both built distributions outside the checkout.
