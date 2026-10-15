@@ -12,12 +12,12 @@ from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from importlib.resources import files
 
-from spacial_ui.components import (
+from spatial_ui.components import (
     CallbackError, Component, EventError, Session, StaleEventError, UnknownEventError,
 )
 
 MAX_BODY = 16_384
-COOKIE = "spacial_session"
+COOKIE = "spatial_session"
 
 
 @dataclass
@@ -29,7 +29,7 @@ class _BrowserSession:
 
 
 class App:
-    def __init__(self, factory: Callable[[], Component], *, title: str = "spacial_ui",
+    def __init__(self, factory: Callable[[], Component], *, title: str = "spatial_ui",
                  stylesheet: str = "", max_sessions: int = 128, session_ttl: int = 1800,
                  clock: Callable[[], float] = time.monotonic):
         if not callable(factory):
@@ -78,7 +78,7 @@ class App:
         if type(port) is not int or not 0 <= port <= 65535:
             raise ValueError("port must be an integer between 0 and 65535")
         app = self
-        runtime = files("spacial_ui").joinpath("static", "runtime.js").read_bytes()
+        runtime = files("spatial_ui").joinpath("static", "runtime.js").read_bytes()
 
         class Handler(BaseHTTPRequestHandler):
             def setup(self):
@@ -132,10 +132,10 @@ class App:
             def do_GET(self):
                 if not self._host():
                     return
-                if self.path == "/_spacial/runtime.js":
+                if self.path == "/_spatial/runtime.js":
                     self._send(200, runtime, "text/javascript; charset=utf-8")
                     return
-                if self.path == "/_spacial/theme.css":
+                if self.path == "/_spatial/theme.css":
                     self._send(200, app.stylesheet, "text/css; charset=utf-8")
                     return
                 if self.path != "/":
@@ -161,9 +161,9 @@ class App:
                     '<meta name="viewport" content="width=device-width, initial-scale=1">'
                     f'<title>{escape(app.title)}</title>'
                     f'<meta name="sui-token" content="{entry.csrf}">'
-                    '<link rel="stylesheet" href="/_spacial/theme.css">'
+                    '<link rel="stylesheet" href="/_spatial/theme.css">'
                     f'<style id="sui-layout" nonce="{entry.nonce}">{snapshot.css}</style>'
-                    '<script defer src="/_spacial/runtime.js"></script></head><body>'
+                    '<script defer src="/_spatial/runtime.js"></script></head><body>'
                     f'<div id="sui-app" data-version="{snapshot.version}">{snapshot.markup}</div>'
                     '<p id="sui-status" role="status" aria-live="polite"></p>'
                     '<noscript>Enable JavaScript to use Python event handlers.</noscript>'
@@ -184,7 +184,7 @@ class App:
                 hostname = self._host()
                 if not hostname:
                     return
-                if self.path != "/_spacial/event":
+                if self.path != "/_spatial/event":
                     self._error(404, "not found")
                     return
                 if self.headers.get("Origin") != f"http://{hostname}":
@@ -202,7 +202,7 @@ class App:
                     return
                 identifier = self._cookie()
                 entry = app._lookup(identifier)
-                supplied = self.headers.get("X-Spacial-Token", "").encode("utf-8")
+                supplied = self.headers.get("X-Spatial-Token", "").encode("utf-8")
                 if entry is None or not hmac.compare_digest(supplied, entry.csrf.encode("utf-8")):
                     self._error(403, "session expired or invalid request token; refresh the page")
                     return

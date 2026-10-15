@@ -2,7 +2,7 @@ import math
 import unittest
 from dataclasses import FrozenInstanceError
 
-from spacial_ui import (
+from spatial_ui import (
     BoundsError, Breakpoint, CollisionError, DependencyCycleError, Grid, Point,
     Rect, Size, UnknownTargetError, above, at, below, center_in, left_of, right_of,
 )

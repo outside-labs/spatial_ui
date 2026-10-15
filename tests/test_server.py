@@ -6,8 +6,8 @@ import threading
 import unittest
 from importlib.resources import files
 
-from spacial_ui import App, Component, State, Transition, html, render
-from spacial_ui.demo import Dashboard, demo_stylesheet
+from spatial_ui import App, Component, State, Transition, html, render
+from spatial_ui.demo import Dashboard, demo_stylesheet
 
 
 class Counter(Component):
@@ -38,7 +38,7 @@ class Client:
 
     def request(self, method='GET', path='/', body=None, headers=None):
         defaults = {'Cookie': self.cookie, 'Origin': f'http://127.0.0.1:{self.port}',
-                    'Content-Type': 'application/json', 'X-Spacial-Token': self.csrf}
+                    'Content-Type': 'application/json', 'X-Spatial-Token': self.csrf}
         defaults.update(headers or {})
         connection = http.client.HTTPConnection('127.0.0.1', self.port, timeout=5)
         connection.request(method, path, body=body, headers=defaults)
@@ -60,7 +60,7 @@ class Client:
                 'version': int(re.search(r'data-version="(\d+)"', page)[1])}
 
     def post(self, payload, headers=None):
-        return self.request('POST', '/_spacial/event', json.dumps(payload), headers)
+        return self.request('POST', '/_spatial/event', json.dumps(payload), headers)
 
 
 class ServerTests(unittest.TestCase):
@@ -77,11 +77,11 @@ class ServerTests(unittest.TestCase):
             self.assertIn(f"'nonce-{nonce}'", headers['Content-Security-Policy'])
             self.assertEqual(headers['Cache-Control'], 'no-store')
             self.assertEqual(headers['X-Content-Type-Options'], 'nosniff')
-            self.assertIn('ResizeObserver', client.request(path='/_spacial/runtime.js')[2])
-            self.assertIn('color: green', client.request(path='/_spacial/theme.css')[2])
-            for path in ('/../pyproject.toml', '/.git/config', '/_spacial/event', '/?other=1'):
+            self.assertIn('ResizeObserver', client.request(path='/_spatial/runtime.js')[2])
+            self.assertIn('color: green', client.request(path='/_spatial/theme.css')[2])
+            for path in ('/../pyproject.toml', '/.git/config', '/_spatial/event', '/?other=1'):
                 self.assertEqual(client.request(path=path)[0], 404)
-            self.assertEqual(client.request('HEAD', '/_spacial/runtime.js')[2], '')
+            self.assertEqual(client.request('HEAD', '/_spatial/runtime.js')[2], '')
             self.assertEqual(client.request(headers={'Host': 'evil.example'})[0], 421)
 
     def test_callbacks_session_isolation_and_replay(self):
@@ -116,7 +116,7 @@ class ServerTests(unittest.TestCase):
             for headers, expected in [
                 ({'Origin': 'https://evil.example'}, 403),
                 ({'Origin': ''}, 403),
-                ({'X-Spacial-Token': 'wrong'}, 403),
+                ({'X-Spatial-Token': 'wrong'}, 403),
                 ({'Cookie': ''}, 403),
                 ({'Content-Type': 'text/plain'}, 415),
                 ({'Content-Length': '9999999'}, 413),
@@ -128,8 +128,8 @@ class ServerTests(unittest.TestCase):
                             {'event': event['event'], 'version':True},
                             {'event':{}, 'version':1}):
                 self.assertEqual(client.post(payload)[0], 400)
-            self.assertEqual(client.request('POST', '/_spacial/event', b'not json')[0], 400)
-            self.assertEqual(client.request('POST', '/_spacial/event', b'\xff')[0], 400)
+            self.assertEqual(client.request('POST', '/_spatial/event', b'not json')[0], 400)
+            self.assertEqual(client.request('POST', '/_spatial/event', b'\xff')[0], 400)
             self.assertEqual(client.post(event)[0], 200)
 
     def test_expiry_and_capacity_are_bounded(self):
@@ -181,7 +181,7 @@ class ServerTests(unittest.TestCase):
         self.assertIn('data-sui-motion="0"', changed.markup)
         self.assertIn('canvas compact', changed.markup)
         self.assertIn('prefers-reduced-motion', demo_stylesheet())
-        self.assertTrue(files('spacial_ui').joinpath('static', 'runtime.js').is_file())
+        self.assertTrue(files('spatial_ui').joinpath('static', 'runtime.js').is_file())
         for kwargs in ({'duration':-1}, {'duration':2001}, {'easing':'javascript:bad'}):
             with self.assertRaises(ValueError):
                 Transition(**kwargs)

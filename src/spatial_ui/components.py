@@ -7,8 +7,8 @@ from copy import deepcopy
 from dataclasses import dataclass
 from typing import Self, overload
 
-from spacial_ui.rendering import render
-from spacial_ui.templates import Renderable
+from spatial_ui.rendering import render
+from spatial_ui.templates import Renderable
 
 
 class State[T]:

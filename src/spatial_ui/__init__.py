@@ -2,21 +2,21 @@
 
 from importlib.metadata import version
 
-from spacial_ui.components import (
+from spatial_ui.components import (
     CallbackError, Component, EventError, Session, Snapshot, StaleEventError, State,
     UnknownEventError,
 )
-from spacial_ui.geometry import Point, Rect, Size
-from spacial_ui.layout import (
+from spatial_ui.geometry import Point, Rect, Size
+from spatial_ui.layout import (
     BoundsError, Breakpoint, CollisionError, DependencyCycleError, Grid, Layout,
     LayoutError, UnknownTargetError, above, at, below, center_in, left_of, right_of,
 )
-from spacial_ui.rendering import Rendered, render
-from spacial_ui.motion import Transition
-from spacial_ui.server import App
-from spacial_ui.templates import Fragment, TemplateError, html
+from spatial_ui.rendering import Rendered, render
+from spatial_ui.motion import Transition
+from spatial_ui.server import App
+from spatial_ui.templates import Fragment, TemplateError, html
 
-__version__ = version("spacial-ui")
+__version__ = version("spatial-ui")
 
 __all__ = [
     "BoundsError", "Breakpoint", "CollisionError", "DependencyCycleError", "Grid",

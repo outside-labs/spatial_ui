@@ -7,7 +7,7 @@ from graphlib import CycleError, TopologicalSorter
 from types import MappingProxyType
 from typing import Literal
 
-from spacial_ui.geometry import Rect, Size, integer
+from spatial_ui.geometry import Rect, Size, integer
 
 
 class LayoutError(ValueError):

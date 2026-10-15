@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from spacial_ui.geometry import integer
+from spatial_ui.geometry import integer
 
 
 @dataclass(frozen=True, slots=True)

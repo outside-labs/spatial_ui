@@ -1,5 +1,5 @@
 [project]
-name = "spacial-ui"
+name = "spatial-ui"
 version = "0.1.0"
 description = "A Python spatial UI engine with square grids and t-string templates."
 readme = "README.md"
@@ -10,7 +10,7 @@ requires-python = ">=3.14"
 dependencies = []
 
 [project.scripts]
-spacial-ui = "spacial_ui.cli:main"
+spatial-ui = "spatial_ui.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.19,<0.13.0"]

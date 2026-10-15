@@ -1,6 +1,6 @@
 import unittest
 
-from spacial_ui import (
+from spatial_ui import (
     BoundsError, Breakpoint, Grid, TemplateError, at, below, html, render,
 )
 

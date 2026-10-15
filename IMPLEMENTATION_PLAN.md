@@ -1,12 +1,12 @@
 # Implementation plan
 
-`spacial_ui` is a Python spatial UI engine using Python 3.14 t-string templates.
+`spatial_ui` is a Python spatial UI engine using Python 3.14 t-string templates.
 The first milestone is an interactive, responsive dashboard with real semantic
 HTML, square logical units, relative placement, and Python callbacks.
 
 ## Design
 
-- Keep the distribution name `spacial-ui` and import name `spacial_ui`.
+- Keep the distribution name `spatial-ui` and import name `spatial_ui`.
 - Use Python 3.14 and the existing `uv` package scaffold. Keep the runtime free
   of third-party dependencies for the first milestone; use `unittest` for tests.
 - Separate geometry and constraint resolution from HTML and transport. Expose
@@ -54,7 +54,7 @@ This example uses the first milestone's public API. Public examples are updated
 alongside the implementation so they reflect the actual API.
 
 ```python
-from spacial_ui import Component, Grid, State, at, html
+from spatial_ui import Component, Grid, State, at, html
 
 
 class Counter(Component):
