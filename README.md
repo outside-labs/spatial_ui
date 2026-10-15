@@ -1,4 +1,4 @@
-# spacial_ui
+# spatial_ui
 
 A Python spatial UI engine with square logical grid units, relative placement,
 and Python 3.14 t-string templates. Early development; no release is published.
@@ -12,7 +12,7 @@ Project track current work; pull requests record implementation and verification
 
 ```sh
 uv sync --locked
-uv run spacial-ui demo
+uv run spatial-ui demo
 ```
 
 Open `http://127.0.0.1:8000/`. Add actions, switch between compact and wide canvases,
@@ -22,7 +22,7 @@ model as the navigation and cards. Use `--port 8001` for another local preview.
 ## Spatial layout
 
 ```python
-from spacial_ui import Grid, at, below, right_of
+from spatial_ui import Grid, at, below, right_of
 
 layout = Grid(12, 8).resolve({
     "nav": at(0, 0, 12, 2),
@@ -42,7 +42,7 @@ inheriting overrides from smaller breakpoints.
 ## T-string templates
 
 ```python
-from spacial_ui import Grid, at, html, render
+from spatial_ui import Grid, at, html, render
 
 name = "Outside Labs"
 page = html(t"""
@@ -71,7 +71,7 @@ reading order follows template order.
 ## Components and state
 
 ```python
-from spacial_ui import Component, Session, State, html
+from spatial_ui import Component, Session, State, html
 
 class Counter(Component):
     count = State(0)
@@ -105,7 +105,7 @@ page refresh. Ordinary Python side effects are not automatically rolled back.
 ## Run your component
 
 ```python
-from spacial_ui import App
+from spatial_ui import App
 
 App(Counter, title="My workspace").run()  # Counter from the example above
 ```
@@ -136,7 +136,7 @@ Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 uv sync --locked
-uv run spacial-ui --version
+uv run spatial-ui --version
 uv run python -m unittest discover -s tests -v
 uv build
 ```

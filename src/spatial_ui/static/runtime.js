@@ -141,9 +141,9 @@
       if (failed || !button.isConnected || button.disabled) return;
       app.setAttribute("aria-busy", "true");
       try {
-        const response = await fetch("/_spacial/event", {
+        const response = await fetch("/_spatial/event", {
           method: "POST", credentials: "same-origin",
-          headers: { "Content-Type": "application/json", "X-Spacial-Token": csrf },
+          headers: { "Content-Type": "application/json", "X-Spatial-Token": csrf },
           body: JSON.stringify({ event: button.dataset.suiClick, version: Number(app.dataset.version) })
         });
         const result = await response.json();

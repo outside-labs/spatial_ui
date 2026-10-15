@@ -6,8 +6,8 @@ from dataclasses import dataclass
 from html import escape
 from types import MappingProxyType
 
-from spacial_ui.layout import Layout
-from spacial_ui.templates import (
+from spatial_ui.layout import Layout
+from spatial_ui.templates import (
     KEY, VOID, Element, Fragment, Node, TemplateError, Text,
     validate_attribute, validate_tag, validate_tree,
 )

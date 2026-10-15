@@ -9,9 +9,9 @@ from html.parser import HTMLParser
 from string.templatelib import Template
 from urllib.parse import urlsplit
 
-from spacial_ui.geometry import Rect
-from spacial_ui.layout import Centered, Grid, Placement, Relative
-from spacial_ui.motion import Transition
+from spatial_ui.geometry import Rect
+from spatial_ui.layout import Centered, Grid, Placement, Relative
+from spatial_ui.motion import Transition
 
 
 class TemplateError(ValueError):

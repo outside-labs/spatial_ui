@@ -2,10 +2,10 @@
 
 from importlib.resources import files
 
-from spacial_ui.components import Component, State
-from spacial_ui.layout import Breakpoint, Grid, at, below, right_of
-from spacial_ui.motion import Transition
-from spacial_ui.templates import html
+from spatial_ui.components import Component, State
+from spatial_ui.layout import Breakpoint, Grid, at, below, right_of
+from spatial_ui.motion import Transition
+from spatial_ui.templates import html
 
 
 class Dashboard(Component):
@@ -43,7 +43,7 @@ class Dashboard(Component):
             <div class="workspace" motion={motion}>
                 <a class="skip-link" href="#workspace-content">Skip to workspace</a>
                 <header class="masthead">
-                    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">s.</span>spacial_ui</a>
+                    <a href="/" class="brand"><span class="brand-mark" aria-hidden="true">s.</span>spatial_ui</a>
                     <span class="studio">OUTSIDE LABS / EXPERIMENT 001</span>
                     <span class="local-badge">LOCAL PREVIEW</span>
                 </header>
@@ -90,10 +90,10 @@ class Dashboard(Component):
                         </section>
                     </main>
                 </div>
-                <footer class="page-footer"><span>spacial_ui <span aria-hidden="true">/</span> A spatial UI engine in Python.</span><span>BUILT AROUND RELATIONSHIPS.</span></footer>
+                <footer class="page-footer"><span>spatial_ui <span aria-hidden="true">/</span> A spatial UI engine in Python.</span><span>BUILT AROUND RELATIONSHIPS.</span></footer>
             </div>
         ''')
 
 
 def demo_stylesheet() -> str:
-    return files("spacial_ui").joinpath("static", "demo.css").read_text(encoding="utf-8")
+    return files("spatial_ui").joinpath("static", "demo.css").read_text(encoding="utf-8")

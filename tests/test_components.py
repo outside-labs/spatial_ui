@@ -1,7 +1,7 @@
 import concurrent.futures
 import unittest
 
-from spacial_ui import (
+from spatial_ui import (
     CallbackError, Component, EventError, Session, StaleEventError, State,
     UnknownEventError, html,
 )
