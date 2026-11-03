@@ -107,6 +107,7 @@ class TableView(Component):
         self.page, self.title, self.key, self.status = page, title, key, status
         self.selected = None
         self.order = tuple(order)
+        self.on_sort = None
 
     def replace(self, page):
         if not isinstance(page, TablePage):
@@ -125,13 +126,16 @@ class TableView(Component):
         ordering = dict(self.order)
         for column in self.page.columns:
             sort = "descending" if ordering.get(column.id) is True else "ascending" if column.id in ordering else "none"
-            headers.append(html(t'<th key={_key(column.id)} scope="col" aria-sort={sort}>{column.label}</th>'))
+            sort_action = lambda name=column.id: self.on_sort(name)
+            label = html(t'<button type="button" on_click={sort_action}>Sort {column.label}: {sort}</button>') if column.sortable and self.on_sort else column.label
+            headers.append(html(t'<th key={_key(column.id)} scope="col" aria-sort={sort if column.sortable else None}>{label}</th>'))
         rows = []
+        available = self.selected in {(r.key, c.id) for r in self.page.rows for c in self.page.columns}
         for row_index, row in enumerate(self.page.rows):
             cells = []
             for column_index, (column, value) in enumerate(zip(self.page.columns, row.values, strict=True)):
                 selected = self.selected == (row.key, column.id)
-                tabindex = 0 if selected or self.selected is None and row_index == column_index == 0 else -1
+                tabindex = 0 if selected or not available and row_index == column_index == 0 else -1
                 label = f"Row {row.key}, {column.label}: {value}"
                 callback = lambda r=row.key, c=column.id: self.select(r, c)
                 cells.append(html(t'''<td key={_key(row.key, column.id)} aria-selected={str(selected).lower()}>

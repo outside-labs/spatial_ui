@@ -18,6 +18,7 @@ from spatial_ui.server import App
 from spatial_ui.asgi import ASGIApp
 from spatial_ui.templates import Fragment, TemplateError, html
 from spatial_ui.table import TableColumn, TableError, TablePage, TableRow, TableView
+from spatial_ui.table_binding import HeadlessTableClient, HTTPTableClient, TableBinding, TableBrowser
 
 __version__ = version("spatial-ui")
 
@@ -31,4 +32,5 @@ __all__ = [
     "App", "ASGIApp", "Transition",
     "Field", "FieldError", "FormBinding", "FormError", "FormEvent", "FormResult", "FormSchema",
     "TableColumn", "TableError", "TablePage", "TableRow", "TableView",
+    "HeadlessTableClient", "HTTPTableClient", "TableBinding", "TableBrowser",
 ]
