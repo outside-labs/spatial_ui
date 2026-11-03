@@ -6,7 +6,7 @@ installing an API server into a standalone UI environment is unnecessary.
 
 The selected wire profile is the synthetic checked REST service in
 `compose-application` source `dc49317ca006230e69b5784c9f3697c9e51a3e9e`, with
-`expose-api` source `0e46c4bd425257a518193d4064a339cb4996c86e` and its pinned
+`expose-api` source `01d7c486ae9041532c8bfe01d8a2a00496523e68` and its pinned
 Backpack Store/Enforce Type dependencies. These are qualified unreleased source
 revisions, not a claim about published 0.1.0 features. The service owns validation,
 access checks and committed revisions. The UI owns detached drafts and visibility.

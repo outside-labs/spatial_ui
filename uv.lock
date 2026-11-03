@@ -29,7 +29,7 @@ wheels = [
 [[package]]
 name = "expose-api"
 version = "0.1.0"
-source = { git = "https://github.com/outside-labs/expose_api.git?rev=0e46c4bd425257a518193d4064a339cb4996c86e#0e46c4bd425257a518193d4064a339cb4996c86e" }
+source = { git = "https://github.com/outside-labs/expose_api.git?rev=01d7c486ae9041532c8bfe01d8a2a00496523e68#01d7c486ae9041532c8bfe01d8a2a00496523e68" }
 
 [package.optional-dependencies]
 backpack = [
@@ -134,7 +134,7 @@ reference-tests = [
 browser-tests = [{ name = "playwright", specifier = "==1.64.0" }]
 reference-tests = [
     { name = "compose-application", git = "https://github.com/outside-labs/compose_application.git?rev=dc49317ca006230e69b5784c9f3697c9e51a3e9e" },
-    { name = "expose-api", extras = ["backpack"], git = "https://github.com/outside-labs/expose_api.git?rev=0e46c4bd425257a518193d4064a339cb4996c86e" },
+    { name = "expose-api", extras = ["backpack"], git = "https://github.com/outside-labs/expose_api.git?rev=01d7c486ae9041532c8bfe01d8a2a00496523e68" },
 ]
 
 [[package]]
