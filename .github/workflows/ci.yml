@@ -28,7 +28,12 @@ jobs:
       - run: node tests/live_runtime.mjs
       - run: uv build --no-sources
       - name: Install and verify wheel and source distribution
-        run: uv run --locked python scripts/verify_distributions.py
+        run: uv run --locked python scripts/verify_distributions.py --receipt-file live-installed-receipt.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-installed-${{ matrix.os }}
+          path: live-installed-receipt.json
+          if-no-files-found: error
 
   browser:
     name: Chromium form interaction

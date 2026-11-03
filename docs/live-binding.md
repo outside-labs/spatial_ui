@@ -85,3 +85,11 @@ UI sessions/requests and a closed UI worker at shutdown.
 uv sync --locked --group browser-tests --group reference-tests
 uv run --frozen python -W error::ResourceWarning -m unittest discover -s tests -p browser_live.py -v
 ```
+
+CI also builds and installs independent wheel/source artifacts outside the
+checkout on Linux, macOS and Windows. Each base-only installation runs the
+16 configuration/form/native checks and nine deterministic protocol/lifecycle
+checks against its installed browser assets without skips. Retained receipts
+record artifact/module hashes, Python/platform and check counts. These are
+unreleased source qualifications; installed UI artifacts require no API, store
+or browser automation package.

@@ -10,3 +10,4 @@ wheels/
 .venv
 asgi-browser-receipt.json
 live-browser-receipt.json
+live-installed-receipt.json
