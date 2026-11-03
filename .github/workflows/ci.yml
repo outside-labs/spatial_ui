@@ -48,6 +48,7 @@ jobs:
       - run: uv run --frozen python -m playwright install --with-deps chromium
       - run: uv run --frozen python -m unittest discover -s tests -p browser_forms.py -v
       - run: uv run --frozen python -m unittest discover -s tests -p browser_tables.py -v
+      - run: uv run --frozen python -W error::ResourceWarning -m unittest discover -s tests -p browser_table_edits.py -v
       - run: uv run --frozen python -W error::ResourceWarning -m unittest discover -s tests -p browser_asgi.py -v
       - run: uv run --frozen python -W error::ResourceWarning -m unittest discover -s tests -p browser_live.py -v
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

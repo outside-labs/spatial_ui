@@ -6,7 +6,8 @@ loading/error states and visible keyboard focus. Import TableColumn, TableRow,
 TablePage and TableView from spatial_ui. Each session owns a fresh component
 and its `(row_key, column_id)` selection. Duplicate labels/values do not define
 identity. Replacing a table/schema clears selection; revisions and request
-generations remain separate. No editor or write callback exists.
+generations remain separate. TableView itself is a display component; editing
+is explicitly selected on TableBrowser.
 
 `TablePage.from_source(snapshot)` consumes the public Headless Spreadsheets
 TableSnapshot shape without importing that package. It captures display text
@@ -63,4 +64,42 @@ Session expiry, preview server close, native ASGI shutdown and authenticated
 same-origin `POST /_spatial/close` run component cleanup. Table browser stop/pagehide
 requests session closure with the existing private cookie and request token.
 Composite application components must close their owned child components.
-There are no write requests, persisted preferences or collection subscriptions.
+Read-only mode sends no writes. Persisted preferences and collection
+subscriptions remain separate scope.
+
+## Explicit scalar cell editing
+
+Use `HTTPTableClient.open(transport, "/items", key_column="key")` with
+`TableBrowser(client, editable=True)`. The application declares an immutable,
+non-null public text key column for authoritative reloads using a bounded exact
+key predicate. The key is the registered domain key; selecting that mapping is
+the caller's responsibility. All columns default to read-only. API source
+`cdff4682db5decc3d6bdb55f7ba5a6a2105f154a` implements the checked wire route.
+This adds no required package dependency.
+
+Select a cell, then choose **Edit selected cell**. One active cell draft per
+session captures its durable row key, column ID and expected whole-row revision.
+The editor remains available when sorting, searching, paging or changing
+displayed columns removes that cell from the page. Save or Enter commits;
+Escape or Discard cancels. Selecting another cell does not replace an existing
+draft. The editor supports exact text, Boolean selection, portable integers,
+finite floats and explicit nullable null. Invalid drafts remain editable.
+Text editing is bounded to 4,096 UTF-8 bytes; larger values stay read-only in
+this editor. No formula evaluation, rich-value conversion or bulk edit occurs.
+
+Pending, saved, invalid, read-only, denied, conflict and uncertain-save states
+are explicit. Successful completions validate the committed row and revision
+before refreshing. Different cells in one row share a revision and can conflict.
+**Reload current row** performs a fresh keyed read independent of the current
+sort/search/page. Review its current value/revision, then explicitly choose
+**Reapply draft to current revision** and Save, or discard. No write is
+automatically retried or merged. A denied/missing row does not expose values.
+
+Canceling a dispatched save, changing its query or losing its response may
+follow commit. Preserve the draft and reload before retrying; a second Save is
+disabled until explicit review/reapply. Source replacement refuses old
+completions and leaves the old draft detached for discard. Closing a session
+cancels admission and drains accepted work before releasing owned clients.
+Browser tests exercise independent sessions, composition/focus, sort/search
+with hidden edit targets, conflicts, invalid input, scalar controls, canceled
+committed saves, lost responses and teardown in actual Chromium.

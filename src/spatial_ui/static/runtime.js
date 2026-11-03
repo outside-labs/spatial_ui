@@ -189,6 +189,7 @@ import { LiveConnections } from "./live.js";
         const before = measure();
         cancelMotion();
         const active = document.activeElement;
+        const previousEditor = app.querySelector("form[data-table-editor]");
         const selection = active && typeof active.selectionStart === "number"
           ? [active.selectionStart, active.selectionEnd, active.selectionDirection] : null;
         const template = document.createElement("template");
@@ -197,6 +198,11 @@ import { LiveConnections } from "./live.js";
         patchChildren(app, template.content);
         app.dataset.version = String(result.version);
         if (active?.isConnected && document.activeElement !== active) active.focus({ preventScroll: true });
+        if (!active?.isConnected) {
+          const editor = app.querySelector("form[data-table-editor]");
+          if (editor && editor !== previousEditor) editor.elements.namedItem("value")?.focus({ preventScroll: true });
+          else if (previousEditor && !editor) app.querySelector('td[aria-selected="true"] button[data-table-cell]')?.focus({ preventScroll: true });
+        }
         if (selection && active?.isConnected) active.setSelectionRange(...selection);
         transition(before);
         observe();
@@ -231,6 +237,19 @@ import { LiveConnections } from "./live.js";
   }, { signal: listeners.signal });
 
   app.addEventListener("keydown", event => {
+    const editor = event.target.closest?.("form[data-table-editor]");
+    if (editor && !event.isComposing && compositions.get(event.target) !== true) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        editor.querySelector("button[data-table-discard]")?.click();
+        return;
+      }
+      if (event.key === "Enter" && event.target.matches("input, select")) {
+        event.preventDefault();
+        editor.requestSubmit();
+        return;
+      }
+    }
     const cell = event.target.closest?.("button[data-table-cell]");
     if (!cell || event.isComposing || event.altKey || event.metaKey || event.shiftKey) return;
     const table = cell.closest("table");
