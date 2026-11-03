@@ -15,6 +15,7 @@ from spatial_ui.layout import (
 from spatial_ui.rendering import Rendered, render
 from spatial_ui.motion import Transition
 from spatial_ui.server import App
+from spatial_ui.asgi import ASGIApp
 from spatial_ui.templates import Fragment, TemplateError, html
 
 __version__ = version("spatial-ui")
@@ -26,6 +27,6 @@ __all__ = [
     "Fragment", "Rendered", "TemplateError", "html", "render",
     "CallbackError", "Component", "EventError", "Session", "Snapshot",
     "StaleEventError", "State", "UnknownEventError",
-    "App", "Transition",
+    "App", "ASGIApp", "Transition",
     "Field", "FieldError", "FormBinding", "FormError", "FormEvent", "FormResult", "FormSchema",
 ]
