@@ -85,7 +85,9 @@ Escape or Discard cancels. Selecting another cell does not replace an existing
 draft. The editor supports exact text, Boolean selection, portable integers,
 finite floats and explicit nullable null. Invalid drafts remain editable.
 Text editing is bounded to 4,096 UTF-8 bytes; larger values stay read-only in
-this editor. No formula evaluation, rich-value conversion or bulk edit occurs.
+this editor. Over-limit typed drafts stay local with a clear invalid state;
+shorten or discard them without reloading the session. View changes preserve
+their visible text. No formula evaluation, rich-value conversion or bulk edit occurs.
 
 Pending, saved, invalid, read-only, denied, conflict and uncertain-save states
 are explicit. Successful completions validate the committed row and revision

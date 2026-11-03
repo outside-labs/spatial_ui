@@ -30,6 +30,30 @@ import { LiveConnections } from "./live.js";
     return forms.get(form);
   };
 
+  function tableTextValid(control) {
+    if (!control.matches("input[data-table-edit-input]")) return true;
+    const valid = new TextEncoder().encode(control.value).length <= 4096;
+    control.setCustomValidity(valid ? "" : "Cell text exceeds 4,096 UTF-8 bytes. Shorten it before saving.");
+    if (!valid) {
+      control.setAttribute("aria-invalid", "true");
+      control.dataset.tableByteInvalid = "true";
+    } else if (control.hasAttribute("data-table-byte-invalid")) {
+      control.removeAttribute("data-table-byte-invalid");
+      control.removeAttribute("aria-invalid");
+    }
+    return valid;
+  }
+
+  function checkTableText(root = app) {
+    let valid = true;
+    for (const control of root.querySelectorAll("input[data-table-edit-input]")) {
+      if (tableTextValid(control)) continue;
+      valid = false;
+      status.textContent = "Cell text exceeds 4,096 UTF-8 bytes. Shorten it or discard the draft.";
+    }
+    return valid;
+  }
+
   function cancelMotion() {
     for (const animation of animations.values()) animation.cancel();
     animations.clear();
@@ -218,6 +242,7 @@ import { LiveConnections } from "./live.js";
             element.elements.namedItem(result.form.focus)?.focus({ preventScroll: true });
           }
         }
+        checkTableText();
       } finally {
         request = null;
         if (state && payload.kind === "submit") { state.pending = false; element.removeAttribute("aria-busy"); }
@@ -282,6 +307,7 @@ import { LiveConnections } from "./live.js";
     const state = stateOf(form);
     state.sequence += 1;
     state.dirty.set(control.name, value);
+    if (!tableTextValid(control)) { checkTableText(); return; }
     enqueue(form, { kind: event.type, fields: { [control.name]: value } }, state);
   }
   for (const kind of ["input", "change"]) app.addEventListener(kind, edit, { signal: listeners.signal });
@@ -295,6 +321,7 @@ import { LiveConnections } from "./live.js";
     const form = event.target;
     if (!form.matches("form[data-sui-form]")) return;
     event.preventDefault();
+    if (!checkTableText(form)) return;
     const state = stateOf(form);
     if (state.pending || [...form.elements].some(control => compositions.get(control) === true)) return;
     const fields = {};
