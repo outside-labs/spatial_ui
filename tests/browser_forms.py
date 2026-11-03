@@ -10,6 +10,9 @@ from test_server import running
 
 
 class BrowserForms(unittest.TestCase):
+    def running(self, app):
+        return running(app)
+
     @classmethod
     def setUpClass(cls):
         cls.playwright = sync_playwright().start()
@@ -21,7 +24,7 @@ class BrowserForms(unittest.TestCase):
         cls.playwright.stop()
 
     def test_typing_keyboard_validation_checkbox_and_session_isolation(self):
-        with running(App(Editor)) as port:
+        with self.running(App(Editor)) as port:
             for width in (390, 1280):
                 with self.subTest(width=width):
                     first = self.browser.new_context(viewport={"width": width, "height": 800}, reduced_motion="reduce")
@@ -50,7 +53,7 @@ class BrowserForms(unittest.TestCase):
                         second.close()
 
     def test_later_typing_duplicate_submit_composition_and_stop(self):
-        with running(App(Editor)) as port:
+        with self.running(App(Editor)) as port:
             context = self.browser.new_context()
             try:
                 page = context.new_page()
