@@ -4,6 +4,7 @@ import json
 import re
 import threading
 import unittest
+from unittest.mock import patch
 from importlib.resources import files
 
 from spatial_ui import App, Component, State, Transition, html, render
@@ -64,6 +65,14 @@ class Client:
 
 
 class ServerTests(unittest.TestCase):
+    def test_numeric_loopback_startup_does_not_query_dns(self):
+        with patch("socket.getfqdn", side_effect=AssertionError("unexpected reverse DNS")) as lookup:
+            with App(Counter).make_server(0) as server:
+                self.assertEqual(server.server_name, "127.0.0.1")
+                self.assertEqual(server.server_port, server.socket.getsockname()[1])
+                self.assertGreater(server.server_port, 0)
+            lookup.assert_not_called()
+
     def test_page_headers_assets_and_explicit_routes(self):
         with running(App(Counter, title='<test>', stylesheet='body { color: green; }')) as port:
             client = Client(port)

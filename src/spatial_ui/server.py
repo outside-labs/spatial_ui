@@ -11,6 +11,7 @@ from html import escape
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from importlib.resources import files
+from socketserver import TCPServer
 
 from spatial_ui.components import (
     CallbackError, Component, EventError, Session, StaleEventError, UnknownEventError,
@@ -18,6 +19,14 @@ from spatial_ui.components import (
 from spatial_ui.forms import MAX_BODY, decode_event
 
 COOKIE = "spatial_session"
+
+
+class _LoopbackHTTPServer(HTTPServer):
+    def server_bind(self):
+        # The caller already selected a numeric loopback address. HTTPServer's
+        # reverse lookup can block startup on hosts with an unavailable resolver.
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address
 
 
 def _document(app, entry, snapshot):
@@ -241,7 +250,7 @@ class App:
                                            "form": snapshot.form_result.as_dict() if snapshot.form_result else None}),
                            extra=(self._session_cookie(identifier),))
 
-        return HTTPServer((host, port), Handler)
+        return _LoopbackHTTPServer((host, port), Handler)
 
     def run(self, port: int = 8000) -> None:
         with self.make_server(port) as server:
