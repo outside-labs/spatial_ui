@@ -11,6 +11,16 @@
   let resting = measure();
   let queue = Promise.resolve();
   let failed = false;
+  let stopped = false;
+  let queued = 0;
+  let request = null;
+  const listeners = new AbortController();
+  const forms = new WeakMap();
+  const compositions = new WeakMap();
+  const stateOf = form => {
+    if (!forms.has(form)) forms.set(form, { sequence: 0, dirty: new Map(), pending: false });
+    return forms.get(form);
+  };
 
   function cancelMotion() {
     for (const animation of animations.values()) animation.cancel();
@@ -48,7 +58,7 @@
     }
   }
 
-  reducedMotion.addEventListener("change", () => { cancelMotion(); resting = measure(); });
+  reducedMotion.addEventListener("change", () => { cancelMotion(); resting = measure(); }, { signal: listeners.signal });
 
   function nodeKey(node) {
     return node.nodeType === Node.ELEMENT_NODE
@@ -72,6 +82,8 @@
     }
     if (current.nodeType !== Node.ELEMENT_NODE) return current;
     const editable = current.matches("input, textarea, select");
+    const form = editable ? current.closest("form[data-sui-form]") : null;
+    const preserve = editable && (!form || stateOf(form).dirty.has(current.name) || compositions.has(current));
     const value = editable ? current.value : null;
     const checked = current.matches("input") ? current.checked : null;
     const selected = current.matches("select") ? new Set([...current.selectedOptions].map(option => option.value)) : null;
@@ -81,10 +93,14 @@
     for (const attribute of next.attributes) {
       if (current.getAttribute(attribute.name) !== attribute.value) current.setAttribute(attribute.name, attribute.value);
     }
-    patchChildren(current, next);
-    if (editable && !current.matches('input[type="file"]')) current.value = value;
-    if (checked !== null) current.checked = checked;
-    if (selected) for (const option of current.options) option.selected = selected.has(option.value);
+    if (!(editable && compositions.get(current) === true)) patchChildren(current, next);
+    if (preserve && !current.matches('input[type="file"]') && current.value !== value) current.value = value;
+    if (preserve && checked !== null) current.checked = checked;
+    if (preserve && selected) for (const option of current.options) option.selected = selected.has(option.value);
+    if (editable && !preserve) {
+      if (current.matches("input")) { current.value = next.value; current.checked = next.checked; }
+      if (current.matches("textarea, select")) current.value = next.value;
+    }
     return current;
   }
 
@@ -133,21 +149,35 @@
   }
   observe();
 
-  app.addEventListener("click", event => {
-    const button = event.target.closest?.("button[data-sui-click]");
-    if (!button || !app.contains(button) || button.disabled) return;
-    event.preventDefault();
+  function enqueue(element, payload = null, state = null) {
+    if (stopped || failed) return;
+    if (queued >= 64) { stop(); return; }
+    queued += 1;
+    const sequence = state?.sequence;
     queue = queue.then(async () => {
-      if (failed || !button.isConnected || button.disabled) return;
+      if (stopped || failed || !element.isConnected) return;
       app.setAttribute("aria-busy", "true");
       try {
+        const envelope = { event: payload ? element.dataset.suiForm : element.dataset.suiClick,
+                           version: Number(app.dataset.version) };
+        if (payload) envelope.payload = payload;
+        const body = JSON.stringify(envelope);
+        if (new TextEncoder().encode(body).length > 16384) throw new Error("Event exceeds its size limit");
+        request = new AbortController();
         const response = await fetch("/_spatial/event", {
           method: "POST", credentials: "same-origin",
           headers: { "Content-Type": "application/json", "X-Spatial-Token": csrf },
-          body: JSON.stringify({ event: button.dataset.suiClick, version: Number(app.dataset.version) })
+          body, signal: request.signal
         });
         const result = await response.json();
-        if (!response.ok) throw new Error(result.error || "Update failed; refresh the page");
+        if (stopped) return;
+        if (!response.ok) throw new Error("Update failed");
+        if (!Number.isSafeInteger(result.version) || result.version <= Number(app.dataset.version)
+            || typeof result.markup !== "string" || typeof result.css !== "string") throw new Error("Invalid response");
+        const currentEdit = state && state.sequence === sequence;
+        if (currentEdit && payload?.kind === "submit" && ["saved", "loaded", "deleted"].includes(result.form?.status)) {
+          state.dirty.clear();
+        }
         const before = measure();
         cancelMotion();
         const active = document.activeElement;
@@ -162,13 +192,97 @@
         if (selection && active?.isConnected) active.setSelectionRange(...selection);
         transition(before);
         observe();
-        status.textContent = "";
+        status.textContent = result.form?.message || "";
+        if (result.form && state && currentEdit) {
+          for (const control of element.elements) control.removeAttribute("aria-invalid");
+          for (const error of result.form.errors) {
+            const control = element.elements.namedItem(error.name);
+            if (control) control.setAttribute("aria-invalid", "true");
+          }
+          if (payload.kind === "submit" && result.form.focus) {
+            element.elements.namedItem(result.form.focus)?.focus({ preventScroll: true });
+          }
+        }
       } finally {
+        request = null;
+        if (state && payload.kind === "submit") { state.pending = false; element.removeAttribute("aria-busy"); }
         app.removeAttribute("aria-busy");
       }
-    }).catch(error => {
+    }).catch(() => {
       failed = true;
-      status.textContent = `${error.message}. Refresh this page to continue.`;
+      status.textContent = "The request outcome is unknown. Your edits are preserved. Reload to reconcile it.";
+    }).finally(() => { queued -= 1; });
+  }
+
+  app.addEventListener("click", event => {
+    const button = event.target.closest?.("button[data-sui-click]");
+    if (!button || !app.contains(button) || button.disabled) return;
+    event.preventDefault();
+    enqueue(button);
+  }, { signal: listeners.signal });
+
+  const fieldValue = control => control.type === "checkbox" ? control.checked : control.value;
+  function edit(event) {
+    const control = event.target;
+    const form = control.closest?.("form[data-sui-form]");
+    if (!form || !control.name || control.disabled || event.isComposing || compositions.get(control) === true) return;
+    const value = fieldValue(control);
+    if (event.type === "input" && compositions.get(control) === value) { compositions.delete(control); return; }
+    const state = stateOf(form);
+    state.sequence += 1;
+    state.dirty.set(control.name, value);
+    enqueue(form, { kind: event.type, fields: { [control.name]: value } }, state);
+  }
+  for (const kind of ["input", "change"]) app.addEventListener(kind, edit, { signal: listeners.signal });
+  app.addEventListener("compositionstart", event => { compositions.set(event.target, true); }, { signal: listeners.signal });
+  app.addEventListener("compositionend", event => {
+    compositions.delete(event.target);
+    edit({ target: event.target, type: "input", isComposing: false });
+    compositions.set(event.target, fieldValue(event.target));
+  }, { signal: listeners.signal });
+  app.addEventListener("submit", event => {
+    const form = event.target;
+    if (!form.matches("form[data-sui-form]")) return;
+    event.preventDefault();
+    const state = stateOf(form);
+    if (state.pending || [...form.elements].some(control => compositions.get(control) === true)) return;
+    const fields = {};
+    for (const control of form.elements) {
+      if (control.matches("input, textarea, select") && control.name && !control.matches(":disabled")) fields[control.name] = fieldValue(control);
+    }
+    state.pending = true;
+    form.setAttribute("aria-busy", "true");
+    enqueue(form, { kind: "submit", fields }, state);
+  }, { signal: listeners.signal });
+  app.addEventListener("reset", event => {
+    const form = event.target;
+    if (!form.matches("form[data-sui-form]")) return;
+    const state = stateOf(form);
+    state.sequence += 1;
+    state.dirty.clear();
+    queueMicrotask(() => {
+      if (!stopped) for (const control of form.elements) {
+        if (control.matches("input, textarea, select") && control.name && !control.matches(":disabled")) {
+          edit({ target: control, type: "change", isComposing: false });
+        }
+      }
     });
-  });
+  }, { signal: listeners.signal });
+
+  function stop() {
+    if (stopped) return;
+    stopped = true;
+    request?.abort();
+    listeners.abort();
+    observer.disconnect();
+    observed.clear();
+    cancelMotion();
+    app.removeAttribute("aria-busy");
+    app.inert = true;
+    for (const form of app.querySelectorAll("form[data-sui-form]")) form.removeAttribute("aria-busy");
+    status.textContent = "Stopped. A dispatched save may have committed. Reload to reconcile it.";
+  }
+  app.addEventListener("sui:stop", stop, { signal: listeners.signal });
+  window.addEventListener("pagehide", stop, { signal: listeners.signal });
+  window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); });
 })();

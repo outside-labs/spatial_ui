@@ -182,4 +182,9 @@ def decode_event(body: bytes) -> dict:
     _text(result["event"])
     if type(result["version"]) is not int or not 1 <= result["version"] <= 2**53 - 1:
         raise FormError("Expected a positive render version.")
+    if "payload" in result:
+        payload = result["payload"]
+        if type(payload) is not dict or payload.keys() != {"kind", "fields"}:
+            raise FormError("Unexpected form payload fields.")
+        FormEvent(payload["kind"], payload["fields"])
     return result

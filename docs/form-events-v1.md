@@ -1,9 +1,10 @@
 # Typed form event contract v1
 
-This contract selects the first typed input boundary for INPUT-01. The current
-development transport implements click events only; these payloads require an
-explicit form-capable transport implementation before use. They are a finite
-contract for the REST binding and future transport, not a browser support claim.
+This contract selects the first typed input boundary for INPUT-01. The loopback
+development transport implements keyed `on_form={FormBinding(schema, callback)}`
+forms with synchronous callbacks returning `FormResult`. The optional
+`browser-tests` development group verifies actual Chromium interaction; production
+and asynchronous transports retain their separate owning contracts.
 
 ## Events and admission
 
@@ -63,6 +64,15 @@ ends. Stop/expiry invalidates bindings, removes listeners and clears queued
 events; late completions cannot mutate a new session. Browser evidence must
 cover actual typing, checkboxes, keyboard submit, validation, focus/caret,
 composition, stale completion and independent sessions before acceptance.
+
+`Field`, `FormSchema`, `FormEvent`, `FormBinding`, `FieldError` and `FormResult`
+are public values. Typed forms declare a key and one control per schema field;
+inputs support text and checkbox, alongside textarea and single select. Disabled
+fields must be optional. Numeric parsing stays in application callbacks.
+The browser bounds its serialized event queue to 64 entries. A `sui:stop` event
+on `#sui-app` or page teardown aborts the current fetch, removes application
+listeners, stops animations/observation and invalidates queued work. Cancellation
+after dispatch has an uncertain write outcome and requires explicit reload.
 
 The [finite fixtures](form-events-v1.json) illustrate admission and refusal.
 Production session routing, credentials/origin policy and asynchronous transport
