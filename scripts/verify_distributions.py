@@ -48,7 +48,7 @@ from pathlib import Path
 import spatial_ui
 assert Path(spatial_ui.__file__).is_relative_to(Path(sys.prefix))
 suite = unittest.TestSuite(unittest.defaultTestLoader.discover(sys.argv[1], pattern=pattern)
-                          for pattern in ("test_live.py", "test_asgi.py"))
+                          for pattern in ("test_live.py", "test_asgi.py", "test_table.py"))
 result = unittest.TextTestRunner(verbosity=2).run(suite)
 assert result.wasSuccessful() and not result.skipped and result.testsRun >= 16
 assert not any(name in sys.modules for name in ("expose_api", "backpack_store", "enforce_type", "playwright"))

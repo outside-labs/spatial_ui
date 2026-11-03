@@ -66,6 +66,10 @@ class _Renderer:
         if in_grid and (node.place is None or node.key is None):
             raise TemplateError("every grid child requires a key and place")
         attributes = []
+        if ("data-table-view", "true") in node.attributes:
+            from spatial_ui.table import TABLE_CSS
+            if TABLE_CSS not in self.styles:
+                self.styles.append(TABLE_CSS)
         for name, value in node.attributes:
             validate_attribute(name, value)
             attributes.append(f' {name}' if value is True else f' {name}="{escape(str(value), quote=True)}"')

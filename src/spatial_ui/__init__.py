@@ -17,6 +17,7 @@ from spatial_ui.motion import Transition
 from spatial_ui.server import App
 from spatial_ui.asgi import ASGIApp
 from spatial_ui.templates import Fragment, TemplateError, html
+from spatial_ui.table import TableColumn, TableError, TablePage, TableRow, TableView
 
 __version__ = version("spatial-ui")
 
@@ -29,4 +30,5 @@ __all__ = [
     "StaleEventError", "State", "UnknownEventError",
     "App", "ASGIApp", "Transition",
     "Field", "FieldError", "FormBinding", "FormError", "FormEvent", "FormResult", "FormSchema",
+    "TableColumn", "TableError", "TablePage", "TableRow", "TableView",
 ]
