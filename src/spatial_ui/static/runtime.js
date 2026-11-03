@@ -226,6 +226,29 @@ import { LiveConnections } from "./live.js";
     enqueue(button);
   }, { signal: listeners.signal });
 
+  app.addEventListener("keydown", event => {
+    const cell = event.target.closest?.("button[data-table-cell]");
+    if (!cell || event.isComposing || event.altKey || event.metaKey || event.shiftKey) return;
+    const table = cell.closest("table");
+    const rows = [...table.tBodies[0].rows];
+    let row = rows.indexOf(cell.closest("tr"));
+    let column = cell.closest("td").cellIndex - 1;
+    const width = rows[row].querySelectorAll("button[data-table-cell]").length;
+    if (event.key === "ArrowDown") row += 1;
+    else if (event.key === "ArrowUp") row -= 1;
+    else if (event.key === "ArrowRight") column += 1;
+    else if (event.key === "ArrowLeft") column -= 1;
+    else if (event.key === "Home") { column = 0; if (event.ctrlKey) row = 0; }
+    else if (event.key === "End") { column = width - 1; if (event.ctrlKey) row = rows.length - 1; }
+    else return;
+    event.preventDefault();
+    const target = rows[Math.max(0, Math.min(rows.length - 1, row))]
+      .querySelectorAll("button[data-table-cell]")[Math.max(0, Math.min(width - 1, column))];
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
+    target.click();
+  }, { signal: listeners.signal });
+
   const fieldValue = control => control.type === "checkbox" ? control.checked : control.value;
   function edit(event) {
     const control = event.target;

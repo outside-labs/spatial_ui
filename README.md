@@ -1,5 +1,8 @@
 # spatial_ui
 
+[Read-only tables](docs/tables.md) render bounded detached pages with semantic
+headers, escaped values and keyboard selection by stable row/column identity.
+
 The [native ASGI profile](docs/asgi.md) selects bounded, process-owned UI
 sessions with explicit origin and lifecycle ownership through `ASGIApp`.
 Hosting destination and deployment remain under HOST-01.
