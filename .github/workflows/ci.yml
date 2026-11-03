@@ -25,6 +25,7 @@ jobs:
       - run: uv sync --locked
       - run: uv run --locked python -m unittest discover -s tests -v
       - run: node --check src/spatial_ui/static/runtime.js
+      - run: node tests/live_runtime.mjs
       - run: uv build --no-sources
       - name: Install and verify wheel and source distribution
         run: uv run --locked python scripts/verify_distributions.py
