@@ -4,6 +4,7 @@ import argparse
 from email.parser import BytesParser
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -78,6 +79,11 @@ def main() -> None:
             python = bindir / ("python.exe" if os.name == "nt" else "python")
             command = bindir / ("spatial-ui.exe" if os.name == "nt" else "spatial-ui")
             subprocess.run([str(python), "-I", "-c", INSTALLED_CHECK], cwd=temporary, check=True)
+            test_directory = Path(temporary) / "tests"
+            shutil.copytree(ROOT / "tests", test_directory, ignore=shutil.ignore_patterns("__pycache__"))
+            subprocess.run([str(python), "-I", "-W", "error::ResourceWarning", "-m", "unittest",
+                            "discover", "-s", str(test_directory), "-p", "test_asgi.py", "-v"],
+                           cwd=temporary, check=True)
             for argv in ([str(python), "-I", "-m", "spatial_ui", "--version"],
                          [str(command), "--version"]):
                 result = subprocess.run(argv, cwd=temporary, check=True, capture_output=True, text=True)

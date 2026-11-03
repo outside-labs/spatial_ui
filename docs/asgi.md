@@ -97,3 +97,25 @@ explicit application/API access profile.
 
 References: [ASGI HTTP](https://asgi.readthedocs.io/en/latest/specs/www.html),
 [ASGI lifespan](https://asgi.readthedocs.io/en/latest/specs/lifespan.html).
+
+## Verification
+
+The native adapter has nine event-level checks covering forms, isolation,
+stale bindings, origin/header/chunk bounds, deadlines, disconnects, queued and
+dispatched cancellation, retained admission slots, drain, expiry and restart.
+The same checks run in independent wheel/source environments outside the source
+tree on Linux, macOS and Windows.
+
+CI also runs three actual Chromium cases through the native adapter, including
+independent contexts at phone/desktop widths, keyboard/checkbox input, validation
+focus, drafts/selections/composition, reduced motion, stale POSTs and a held
+committed response released after browser stop. The browser host asserts zero
+sessions/accepted requests and a closed worker after each run. Its test-only
+HTTP runner comes from the existing qualified `reference-tests` group; it is
+not a UI runtime requirement or a production hosting selection.
+
+```sh
+uv sync --locked --group browser-tests --group reference-tests
+uv run --frozen python -m playwright install chromium
+uv run --frozen python -m unittest discover -s tests -p browser_asgi.py -v
+```
