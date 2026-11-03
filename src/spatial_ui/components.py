@@ -4,11 +4,12 @@ import inspect
 import threading
 from collections.abc import Callable
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Self, overload
 
 from spatial_ui.rendering import render
 from spatial_ui.templates import Renderable
+from spatial_ui.forms import FormBinding, FormError, FormResult
 
 
 class State[T]:
@@ -64,18 +65,19 @@ class Snapshot:
     markup: str
     css: str
     event_ids: tuple[str, ...]
+    form_result: FormResult | None = None
 
 
-def _validate_callback(callback: Callable[[], None]) -> None:
+def _validate_callback(callback, *, form=False) -> None:
     for candidate in (callback, getattr(callback, "__call__", None)):
         if any(check(candidate) for check in (
             inspect.iscoroutinefunction, inspect.isgeneratorfunction, inspect.isasyncgenfunction
         )):
-            raise EventError("click handlers must be synchronous functions")
+            raise EventError("event handlers must be synchronous functions")
     try:
-        inspect.signature(callback).bind()
+        inspect.signature(callback).bind(*((None,) if form else ()))
     except (TypeError, ValueError) as error:
-        raise EventError("click handlers must accept a call without arguments") from error
+        raise EventError("event handler signature does not match its binding") from error
 
 
 class Session:
@@ -86,7 +88,7 @@ class Session:
             raise TypeError("Session requires a Component instance")
         self.component = component
         self._version = 0
-        self._callbacks: dict[str, Callable[[], None]] = {}
+        self._callbacks: dict[str, Callable[[], None] | FormBinding] = {}
         self._lock = threading.RLock()
 
     def render(self) -> Snapshot:
@@ -95,11 +97,12 @@ class Session:
             self._version += 1
             rendered = render(self.component.render())
             for callback in rendered.events.values():
-                _validate_callback(callback)
+                _validate_callback(callback.callback if isinstance(callback, FormBinding) else callback,
+                                   form=isinstance(callback, FormBinding))
             self._callbacks = dict(rendered.events)
             return Snapshot(self._version, rendered.markup, rendered.css, tuple(rendered.events))
 
-    def dispatch(self, event_id: str, version: int) -> Snapshot:
+    def dispatch(self, event_id: str, version: int, payload=None) -> Snapshot:
         with self._lock:
             if type(version) is not int or version < 1:
                 raise EventError("version must be a positive integer")
@@ -110,14 +113,27 @@ class Session:
             callback = self._callbacks.get(event_id)
             if callback is None:
                 raise UnknownEventError("unknown event")
+            form = isinstance(callback, FormBinding)
+            if form:
+                try:
+                    event = callback.schema.admit(payload)
+                except FormError as error:
+                    raise EventError("invalid form event") from error
+            elif payload is not None:
+                raise EventError("click events do not accept form payloads")
             # Invalidate all bindings before running user code, including failure paths.
             self._callbacks = {}
             try:
-                result = callback()
-                if result is not None:
+                result = callback.callback(event) if form else callback()
+                if form and isinstance(result, FormResult):
+                    names = {field.name for field in callback.schema.fields}
+                    if any(error.name not in names for error in result.errors):
+                        raise TypeError("form errors must refer to declared fields")
+                    return replace(self.render(), form_result=result)
+                if form or result is not None:
                     if inspect.iscoroutine(result) or inspect.isgenerator(result):
                         result.close()
-                    raise TypeError("click handlers must return None")
+                    raise TypeError("event handler returned an unsupported result")
                 return self.render()
             except Exception as error:
                 self._version += 1

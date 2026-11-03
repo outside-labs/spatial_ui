@@ -15,8 +15,8 @@ from importlib.resources import files
 from spatial_ui.components import (
     CallbackError, Component, EventError, Session, StaleEventError, UnknownEventError,
 )
+from spatial_ui.forms import MAX_BODY, decode_event
 
-MAX_BODY = 16_384
 COOKIE = "spatial_session"
 
 
@@ -210,9 +210,7 @@ class App:
                     body = self.rfile.read(int(lengths[0]))
                     if len(body) != int(lengths[0]):
                         raise ValueError("incomplete body")
-                    payload = json.loads(body)
-                    if not isinstance(payload, dict) or payload.keys() != {"event", "version"}:
-                        raise ValueError("unexpected event fields")
+                    payload = decode_event(body)
                 except TimeoutError:
                     self._error(408, "request timed out")
                     return
@@ -220,7 +218,7 @@ class App:
                     self._error(400, "invalid event payload")
                     return
                 try:
-                    snapshot = entry.session.dispatch(payload["event"], payload["version"])
+                    snapshot = entry.session.dispatch(payload["event"], payload["version"], payload.get("payload"))
                 except StaleEventError:
                     self._error(409, "page changed; refresh the page")
                     return
@@ -234,7 +232,8 @@ class App:
                     self._error(500, "callback failed; refresh the page")
                     return
                 self._send(200, json.dumps({"version": snapshot.version,
-                                           "markup": snapshot.markup, "css": snapshot.css}),
+                                           "markup": snapshot.markup, "css": snapshot.css,
+                                           "form": snapshot.form_result.as_dict() if snapshot.form_result else None}),
                            extra=(self._session_cookie(identifier),))
 
         return HTTPServer((host, port), Handler)

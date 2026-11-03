@@ -1,6 +1,6 @@
 """Bounded, immutable form values for the form-events-v1 profile."""
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 import json
 import re
@@ -141,6 +141,16 @@ class FormResult:
         return {"status": self.status, "message": MESSAGES[self.status],
                 "errors": [error.as_dict() for error in self.errors],
                 "focus": self.errors[0].name if self.errors else None}
+
+
+@dataclass(frozen=True, slots=True)
+class FormBinding:
+    schema: FormSchema
+    callback: Callable[[FormEvent], FormResult]
+
+    def __post_init__(self):
+        if not isinstance(self.schema, FormSchema) or not callable(self.callback):
+            raise FormError("Bind a trusted schema and callback.")
 
 
 def _pairs(pairs):
