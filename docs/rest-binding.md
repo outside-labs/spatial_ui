@@ -6,7 +6,7 @@ installing an API server into a standalone UI environment is unnecessary.
 
 The selected wire profile is the synthetic checked REST service in
 `compose-application` source `dc49317ca006230e69b5784c9f3697c9e51a3e9e`, with
-`expose-api` source `95d2e1ce0045a7e24e08041d217cf1bbcd1edd00` and its pinned
+`expose-api` source `0e46c4bd425257a518193d4064a339cb4996c86e` and its pinned
 Backpack Store/Enforce Type dependencies. These are qualified unreleased source
 revisions, not a claim about published 0.1.0 features. The service owns validation,
 access checks and committed revisions. The UI owns detached drafts and visibility.
@@ -48,3 +48,23 @@ Applications with their own asynchronous transport can own dispatch and call
 preview server serialize callbacks; this profile makes no asynchronous or
 production hosting claim. Native form/browser stop aborts the browser fetch;
 an already dispatched service write may still commit.
+
+## Reusable resource forms
+
+`spatial_ui.resource_form.ResourceForm(client)` creates a fresh binding for each
+component instance. Supply a fresh form from the `App` factory for each browser
+session. A stateless client/transport can be shared. Labels and bounded select
+choices are configured explicitly; raw text is escaped at the template boundary.
+
+The Action selector makes each operation explicit: Save, Load / refresh, Discard
+edits, Delete and Start new. Load retains dirty fields alongside a newly loaded
+committed value/revision, enabling a deliberate merge followed by Save. Discard
+edits replaces the draft with the loaded value; Start new clears the editor.
+Loaded identities are read-only. Invalid fields retain drafts and receive focus;
+backend errors without visible field paths use a fixed live status message.
+Unknown writes must be reconciled before discarding or starting another record.
+
+Run `uv run --group reference-tests python -m unittest discover -s tests -p
+test_reference_form.py` for actual checked REST validation, two-editor conflicts,
+merge/discard, deletion and SQLite restart checks. This optional development
+profile does not add dependencies to installed UI distributions.

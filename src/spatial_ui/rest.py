@@ -358,6 +358,21 @@ class ResourceBinding:
             self._active = None
             self.status = "closed"
 
+    def discard(self, *, new=False):
+        """Explicitly discard drafts, optionally starting a new resource."""
+        with self._lock:
+            if self._active is not None or self.status == "closed" or self._uncertain:
+                raise BindingError("Finish or reconcile the current request before discarding edits.")
+            if new:
+                self.committed, self.revision = None, None
+            for field in self.client.spec.schema.fields:
+                if not field.disabled:
+                    self._draft[field.name] = self.committed[field.name] if self.committed is not None else (
+                        field.default if field.default is not None else False if field.kind == "checkbox" else "")
+            self._changed.clear()
+            self.errors = ()
+            self.status = "loaded" if self.committed is not None else "idle"
+
     def result(self):
         with self._lock:
             status = self.status if self.status in {"loaded", "saved", "deleted", "invalid", "conflict", "error", "uncertain"} else "edited"
