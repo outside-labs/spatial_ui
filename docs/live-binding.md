@@ -69,3 +69,19 @@ The native UI still owns one synchronous worker and private process-local
 sessions. Callback timeouts, reverse proxy admission, TLS, send bounds and a
 production ASGI host remain application responsibilities. No deployment,
 package publication, new external service or Track B browser grant is implied.
+
+## Browser acceptance
+
+The `browser-tests` and `reference-tests` development groups qualify actual
+Chromium WebSockets against the accepted API revision. The bounded test-only
+wire host carries native HTTP and WebSocket scopes; it is not a production
+hosting selection. Three cases cover two independent contexts at 390/1280px,
+dirty remote updates, validation/conflict/merge, focus/selection/composition,
+16-editor admission, missing/denied records, journal-expiry resync, stale
+callbacks, revocation and stop/reload. The receipt asserts zero API sockets,
+UI sessions/requests and a closed UI worker at shutdown.
+
+```sh
+uv sync --locked --group browser-tests --group reference-tests
+uv run --frozen python -W error::ResourceWarning -m unittest discover -s tests -p browser_live.py -v
+```
