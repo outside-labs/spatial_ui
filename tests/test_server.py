@@ -78,6 +78,7 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(headers['Cache-Control'], 'no-store')
             self.assertEqual(headers['X-Content-Type-Options'], 'nosniff')
             self.assertIn('ResizeObserver', client.request(path='/_spatial/runtime.js')[2])
+            self.assertIn('class Subscription', client.request(path='/_spatial/live.js')[2])
             self.assertIn('color: green', client.request(path='/_spatial/theme.css')[2])
             for path in ('/../pyproject.toml', '/.git/config', '/_spatial/event', '/?other=1'):
                 self.assertEqual(client.request(path=path)[0], 404)

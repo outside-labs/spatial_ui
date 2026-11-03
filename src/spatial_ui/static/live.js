@@ -211,3 +211,78 @@ export class Subscription {
     this.value = this.cursor = null;
   }
 }
+
+const messages = {
+  connecting: "Connecting to live updates. Your edits are preserved.",
+  reconnecting: "Connection interrupted. Your edits are preserved. Reconnecting…",
+  resyncing: "Refreshing live updates. Your edits are preserved.",
+  unavailable: "Live updates unavailable. Your edits are preserved. Reload to reconnect.",
+};
+
+export class LiveConnections {
+  constructor(root, options = {}) {
+    this.root = root;
+    this.options = options;
+    this.entries = new Map();
+    this.closed = false;
+  }
+
+  render(entry) {
+    const { node, config, state } = entry;
+    const status = node.querySelector("[data-live-status]");
+    const values = node.querySelector("[data-live-value]");
+    if (!status || !values) return;
+    node.dataset.suiLiveState = state.status;
+    const changed = state.value && Object.keys(config.fields).some(name => state.value[name] !== config.baseline[name]);
+    status.textContent = state.status === "live" ? changed
+      ? "Remote update available. Load / refresh before merging your edits."
+      : "Live updates connected." : messages[state.status];
+    const children = [];
+    if (state.value) for (const name of Object.keys(config.fields)) {
+      const term = node.ownerDocument.createElement("dt");
+      const description = node.ownerDocument.createElement("dd");
+      term.textContent = name;
+      description.textContent = String(state.value[name]);
+      children.push(term, description);
+    }
+    values.replaceChildren(...children);
+  }
+
+  scan() {
+    if (this.closed) return;
+    const nodes = new Set(this.root.querySelectorAll("[data-sui-live]"));
+    for (const [node, entry] of this.entries) {
+      if (!nodes.has(node)) { entry.connection.stop(); this.entries.delete(node); }
+    }
+    for (const node of nodes) {
+      let entry = this.entries.get(node);
+      try {
+        const config = configuration(strictJSON(node.dataset.suiLive));
+        const signature = JSON.stringify({ ...config, baseline: null });
+        if (entry && entry.signature !== signature) {
+          entry.connection.stop(); this.entries.delete(node); entry = null;
+        }
+        if (!entry) {
+          if (this.entries.size >= 16) throw new Error("Live editor capacity reached");
+          entry = { node, config, signature, state: { status: "connecting", value: null } };
+          this.entries.set(node, entry);
+          entry.connection = new Subscription(config, state => { entry.state = state; this.render(entry); }, this.options);
+        } else entry.config = config;
+        this.render(entry);
+      } catch {
+        entry?.connection?.stop();
+        this.entries.delete(node);
+        const status = node.querySelector("[data-live-status]");
+        if (status) status.textContent = messages.unavailable;
+        node.querySelector("[data-live-value]")?.replaceChildren();
+        node.dataset.suiLiveState = "unavailable";
+      }
+    }
+  }
+
+  stop() {
+    this.closed = true;
+    for (const entry of this.entries.values()) entry.connection.stop();
+    this.entries.clear();
+  }
+}

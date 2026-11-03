@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import unittest
+from html.parser import HTMLParser
 
 from spatial_ui import Field, FormSchema
 from spatial_ui.live import LiveConfig
@@ -42,6 +43,53 @@ class LiveConfigTests(unittest.TestCase):
                       {"key": "note-1"}, {**self.value, "title": "x" * 4097}):
             with self.subTest(value=str(value)[:50]), self.assertRaises(TransportError):
                 LiveConfig("/notes").declaration(self.spec, value)
+
+
+class LiveFormTests(unittest.TestCase):
+    def form(self):
+        from spatial_ui.resource_form import ResourceForm
+        from spatial_ui.rest import ResourceClient
+        from test_rest import FakeTransport, SPEC
+        return ResourceForm(ResourceClient(FakeTransport(), SPEC), live=LiveConfig("/api/notes"))
+
+    def declaration(self, form):
+        from spatial_ui import Session
+        declarations = []
+        class Parser(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                for name, value in attrs:
+                    if name == "data-sui-live":
+                        declarations.append(json.loads(value))
+        Parser().feed(Session(form).render().markup)
+        return declarations
+
+    def test_opt_in_only_subscribes_loaded_record_and_removes_on_new_or_close(self):
+        form = self.form()
+        self.assertEqual(self.declaration(form), [])
+        form.binding.perform("load", key="a")
+        self.assertEqual(self.declaration(form)[0]["path"], "/api/notes/a")
+        form.binding.discard(new=True)
+        self.assertEqual(self.declaration(form), [])
+        form.binding.perform("load", key="a")
+        form.binding.close()
+        self.assertEqual(self.declaration(form), [])
+
+    def test_live_declaration_preserves_draft_revision_and_visibility(self):
+        form = self.form()
+        form.binding.perform("load", key="a")
+        form.binding.edit({"title": '<draft>"🌱'})
+        declaration = self.declaration(form)[0]
+        self.assertNotIn("never displayed", json.dumps(declaration))
+        self.assertEqual(declaration["baseline"]["title"], "Initial")
+        self.assertEqual(form.binding.draft["title"], '<draft>"🌱')
+        self.assertEqual(form.binding.revision, "1")
+        self.assertNotIn("revision", declaration)
+        self.assertEqual(self.declaration(self.form()), [])
+
+    def test_refuse_implicit_live_configuration(self):
+        from spatial_ui.resource_form import ResourceForm
+        with self.assertRaises(BindingError):
+            ResourceForm(self.form().binding.client, live="/api/notes")
 
 
 if __name__ == "__main__":

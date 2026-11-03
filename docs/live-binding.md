@@ -6,6 +6,21 @@ This optional browser consumer adopts Expose API source
 Import `LiveConfig` explicitly from `spatial_ui.live`. Base installation needs
 no extra runtime package. Browser and installed acceptance are separate checks.
 
+```python
+from spatial_ui.live import LiveConfig
+from spatial_ui.resource_form import ResourceForm
+
+# client is the application's existing checked ResourceClient.
+editor = ResourceForm(client, live=LiveConfig("/api/work-items"))
+```
+
+Supply a fresh editor from the App factory for each UI session. Creating an
+editor or rendering an unloaded record opens no socket. Once loaded, the browser
+runtime shows the remote value beside the checked REST baseline. An explicit
+Load / refresh keeps dirty fields for merging; Discard edits uses the loaded
+REST value. Deleting or starting a new record removes the subscription. Existing
+forms without `live=` retain their current behavior.
+
 The application routes a static API collection path on the UI's exact origin.
 Select `LiveConfig("/api/work-items")` to subscribe to the loaded record under
 that path. The host supplies TLS and WebSocket upgrades and preserves the

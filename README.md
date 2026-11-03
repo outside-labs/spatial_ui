@@ -154,6 +154,12 @@ The [REST profile](docs/rest-binding.md) records supported immutable development
 revisions, visibility, cancellation and session constraints. The published 0.1.0
 artifacts do not include these additions.
 
+`ResourceForm(client, live=LiveConfig("/api/work-items"))` opts into bounded
+same-origin browser snapshots. Import `LiveConfig` from `spatial_ui.live` and
+select the application's cookie verifier, API policies and WebSocket-capable
+ASGI host. Remote values appear beside preserved drafts; refresh/merge and
+checked writes remain explicit. See the [live profile](docs/live-binding.md).
+
 ## Compatibility
 
 The public API is early. Before 1.0, minor releases may include breaking changes;
