@@ -453,7 +453,7 @@ class TableBrowser(Component):
             if draft.column.type == "boolean":
                 control = html(t'<select key="value" id={editor_id} name="value" disabled={busy}><option value="false" selected={draft.text == "false"}>false</option><option value="true" selected={draft.text == "true"}>true</option></select>')
             else:
-                control = html(t'<input key="value" id={editor_id} name="value" type="text" value={draft.text} maxlength="4096" aria-invalid={binding.edit_status == "invalid"} disabled={busy}>')
+                control = html(t'<input key="value" id={editor_id} name="value" type="text" data-table-edit-input="true" value={draft.text} maxlength="4096" aria-invalid={binding.edit_status == "invalid"} disabled={busy}>')
             current = ""
             if draft.current is not None:
                 index = [c.id for c in binding.client.columns].index(draft.column.id)

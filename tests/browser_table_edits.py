@@ -156,3 +156,38 @@ class BrowserCellEdits(unittest.TestCase):
                 if transport.release:
                     transport.release.set()
                 context.close()
+
+    def test_oversized_unicode_draft_stays_local_and_can_be_corrected_or_discarded(self):
+        transport = EditableTransport()
+        with running(App(lambda: TableBrowser(transport.client(), editable=True))) as port:
+            context = self.browser.new_context()
+            try:
+                page = context.new_page()
+                page.goto(f"http://127.0.0.1:{port}")
+                self.begin(page)
+                value = page.get_by_label("Cell value", exact=True)
+                oversized = "é" * 2100
+                value.fill(oversized)
+                expect(value).to_have_attribute("aria-invalid", "true")
+                expect(page.locator("#sui-status")).to_contain_text("exceeds 4,096 UTF-8 bytes")
+                expect(value).to_be_focused()
+                self.assertFalse(value.evaluate("n => n.checkValidity()"))
+                value.press("Enter")
+                self.assertEqual(transport.writes, [])
+                page.get_by_label("Search table", exact=True).fill("Zulu")
+                expect(page.locator("[data-table-cell]").first).to_have_attribute("data-row-key", "b")
+                expect(value).to_have_value(oversized)
+                expect(value).to_have_attribute("aria-invalid", "true")
+                value.fill("Corrected café")
+                value.press("Enter")
+                self.state(page, "saved")
+                self.assertEqual(transport.rows["a"]["values"]["title"], "Corrected café")
+                page.get_by_label("Search table", exact=True).fill("")
+                self.begin(page)
+                value.fill(oversized)
+                expect(value).to_have_attribute("aria-invalid", "true")
+                value.press("Escape")
+                self.state(page, "idle")
+                self.assertEqual(len(transport.writes), 1)
+            finally:
+                context.close()
