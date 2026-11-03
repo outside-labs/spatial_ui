@@ -20,6 +20,29 @@ from spatial_ui.forms import MAX_BODY, decode_event
 COOKIE = "spatial_session"
 
 
+def _document(app, entry, snapshot):
+    page = (
+        '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f'<title>{escape(app.title)}</title>'
+        f'<meta name="sui-token" content="{entry.csrf}">'
+        '<link rel="stylesheet" href="/_spatial/theme.css">'
+        f'<style id="sui-layout" nonce="{entry.nonce}">{snapshot.css}</style>'
+        '<script defer src="/_spatial/runtime.js"></script></head><body>'
+        f'<div id="sui-app" data-version="{snapshot.version}">{snapshot.markup}</div>'
+        '<p id="sui-status" role="status" aria-live="polite"></p>'
+        '<noscript>Enable JavaScript to use Python event handlers.</noscript>'
+        '</body></html>'
+    )
+    policy = (
+        "default-src 'none'; script-src 'self'; "
+        f"style-src 'self' 'nonce-{entry.nonce}'; "
+        "img-src 'self' https:; connect-src 'self'; form-action 'self'; "
+        "base-uri 'none'; frame-ancestors 'none'"
+    )
+    return page, policy
+
+
 @dataclass
 class _BrowserSession:
     session: Session
@@ -156,25 +179,7 @@ class App:
                     self._error(500, "page render failed")
                     return
                 # Grid CSS is generated only from validated names, integers, and enums.
-                page = (
-                    '<!doctype html><html lang="en"><head><meta charset="utf-8">'
-                    '<meta name="viewport" content="width=device-width, initial-scale=1">'
-                    f'<title>{escape(app.title)}</title>'
-                    f'<meta name="sui-token" content="{entry.csrf}">'
-                    '<link rel="stylesheet" href="/_spatial/theme.css">'
-                    f'<style id="sui-layout" nonce="{entry.nonce}">{snapshot.css}</style>'
-                    '<script defer src="/_spatial/runtime.js"></script></head><body>'
-                    f'<div id="sui-app" data-version="{snapshot.version}">{snapshot.markup}</div>'
-                    '<p id="sui-status" role="status" aria-live="polite"></p>'
-                    '<noscript>Enable JavaScript to use Python event handlers.</noscript>'
-                    '</body></html>'
-                )
-                policy = (
-                    "default-src 'none'; script-src 'self'; "
-                    f"style-src 'self' 'nonce-{entry.nonce}'; "
-                    "img-src 'self' https:; connect-src 'self'; form-action 'self'; "
-                    "base-uri 'none'; frame-ancestors 'none'"
-                )
+                page, policy = _document(app, entry, snapshot)
                 self._send(200, page, "text/html; charset=utf-8", extra=(
                     ("Content-Security-Policy", policy),
                     self._session_cookie(identifier),

@@ -2,9 +2,25 @@
 
 The selected transport is a dependency-free ASGI 3 HTTP/lifespan adapter over
 an explicit `App` factory. It preserves the existing version 1 form/event and
-browser runtime protocols. HOST-03 implements this contract; HOST-04 owns
-browser and installed-artifact acceptance. The bundled loopback HTTP server
+browser runtime protocols. `spatial_ui.ASGIApp` implements this contract; HOST-04
+owns browser and installed-artifact acceptance. The bundled loopback HTTP server
 retains its current development scope.
+
+```python
+from spatial_ui import App, ASGIApp
+from spatial_ui.demo import Dashboard, demo_stylesheet
+
+application = ASGIApp(
+    App(Dashboard, title="Outside Labs", stylesheet=demo_stylesheet()),
+    origin="https://dashboard.example",
+    pending_limit=16,
+)
+```
+
+Pass `application` to the host selected by the deployment owner with lifespan
+enabled and one worker. The example origin is configuration, not a deployed URL.
+For direct embedding, use `async with application:` around ASGI HTTP calls and
+drain the listener before leaving the context.
 
 ## Ownership and concurrency
 
