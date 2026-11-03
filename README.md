@@ -1,5 +1,9 @@
 # spatial_ui
 
+The [native ASGI profile](docs/asgi.md) selects bounded, process-owned UI
+sessions with explicit origin and lifecycle ownership. Implementation and
+acceptance follow in HOST-03/04; hosting destination remains under HOST-01.
+
 A Python spatial UI engine with square logical grid units, relative placement,
 and Python 3.14 t-string templates. Version 0.1.0 is an early release under the
 [MIT license](LICENSE), with no third-party runtime dependencies.
