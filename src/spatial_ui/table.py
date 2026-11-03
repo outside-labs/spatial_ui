@@ -30,10 +30,14 @@ class TableColumn:
     label: str
     sortable: bool = False
     searchable: bool = False
+    type: str = "native"
+    nullable: bool = True
+    writable: bool = False
 
     def __post_init__(self):
         if (type(self.id) is not str or not ID.fullmatch(self.id) or type(self.label) is not str or len(self.label) > 256
-                or type(self.sortable) is not bool or type(self.searchable) is not bool):
+                or any(type(v) is not bool for v in (self.sortable, self.searchable, self.nullable, self.writable))
+                or self.type not in {"native", "text", "boolean", "integer", "number"} or self.writable and self.type == "native"):
             raise TableError("Invalid display column.")
 
 
@@ -42,11 +46,17 @@ class TableRow:
     key: str
     values: tuple[str, ...]
     revision: str | None = None
+    raw_values: tuple | None = None
 
     def __post_init__(self):
         if type(self.values) not in (tuple, list) or len(self.values) > 64 or any(type(value) is not str or len(value) > 16384 for value in self.values):
             raise TableError("Display cells require bounded text.")
         object.__setattr__(self, "values", tuple(self.values))
+        if self.raw_values is not None:
+            if (type(self.raw_values) not in (tuple, list) or len(self.raw_values) != len(self.values)
+                    or any(type(value) not in (str, bool, int, float, type(None)) for value in self.raw_values)):
+                raise TableError("Editable rows require detached scalar values.")
+            object.__setattr__(self, "raw_values", tuple(self.raw_values))
         if type(self.key) is not str or not ID.fullmatch(self.key):
             raise TableError("Invalid row identity.")
         if self.revision is not None and (type(self.revision) is not str or not re.fullmatch(r"[1-9][0-9]{0,18}", self.revision, re.ASCII)
@@ -82,8 +92,11 @@ class TablePage:
     @classmethod
     def from_source(cls, snapshot):
         """Consume public headless snapshot attributes without importing it."""
-        columns = tuple(TableColumn(c.id, c.label, c.sortable, c.searchable) for c in snapshot.columns)
-        rows = tuple(TableRow(row.key, tuple(display(cell.value) for cell in row.cells), row.revision) for row in snapshot.rows)
+        columns = tuple(TableColumn(c.id, c.label, c.sortable, c.searchable, getattr(c, "type", "native"),
+                                    getattr(c, "nullable", True), getattr(c, "writable", False)) for c in snapshot.columns)
+        rows = tuple(TableRow(row.key, tuple(display(cell.value) for cell in row.cells), row.revision,
+                             tuple(cell.value for cell in row.cells) if all(type(cell.value) in (str, bool, int, float, type(None)) for cell in row.cells) else None)
+                     for row in snapshot.rows)
         return cls(snapshot.table_id, snapshot.schema_version, columns, rows, snapshot.generation, snapshot.next_cursor)
 
 
@@ -108,6 +121,7 @@ class TableView(Component):
         self.selected = None
         self.order = tuple(order)
         self.on_sort = None
+        self.editable = False
 
     def replace(self, page):
         if not isinstance(page, TablePage):
@@ -148,4 +162,4 @@ class TableView(Component):
           <h2>{self.title}</h2><p role="status" aria-live="polite">{message}</p><p>{selection}</p>
           <div class="sui-table-scroll" role="region" aria-label={self.title} tabindex="0">
             <table><caption>{self.title}</caption><thead><tr><th scope="col">Row key</th>{headers}</tr></thead><tbody>{rows}</tbody></table>
-          </div><p>Read-only view. Long cells are shortened for display.</p></section>''')
+          </div><p>{"Cell editing is explicitly enabled." if self.editable else "Read-only view."} Long cells are shortened for display.</p></section>''')
