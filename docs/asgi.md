@@ -64,7 +64,7 @@ Origin on event POSTs. Forwarded headers never select origin or identity. A
 trusted TLS proxy must preserve the configured Host and route only this
 application's exact root paths; mounting below a path prefix is unsupported.
 
-The adapter serves only `/`, `/_spatial/runtime.js`, `/_spatial/theme.css` and
+The adapter serves only `/`, `/_spatial/runtime.js`, `/_spatial/live.js`, `/_spatial/theme.css` and
 `/_spatial/event`. GET/HEAD serve explicit pages/assets; POST accepts only JSON
 events. Unknown paths, query strings, duplicate sensitive headers and unsupported
 methods are refused. ASGI request chunks are accumulated only up to the existing

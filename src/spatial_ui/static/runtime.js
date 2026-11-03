@@ -1,3 +1,5 @@
+import { LiveConnections } from "./live.js";
+
 (() => {
   "use strict";
   const app = document.getElementById("sui-app");
@@ -17,6 +19,8 @@
   const listeners = new AbortController();
   const forms = new WeakMap();
   const compositions = new WeakMap();
+  const live = new LiveConnections(app);
+  live.scan();
   const stateOf = form => {
     if (!forms.has(form)) forms.set(form, { sequence: 0, dirty: new Map(), pending: false });
     return forms.get(form);
@@ -192,6 +196,7 @@
         if (selection && active?.isConnected) active.setSelectionRange(...selection);
         transition(before);
         observe();
+        live.scan();
         status.textContent = result.form?.message || "";
         if (result.form && state && currentEdit) {
           for (const control of element.elements) control.removeAttribute("aria-invalid");
@@ -273,6 +278,7 @@
     if (stopped) return;
     stopped = true;
     request?.abort();
+    live.stop();
     listeners.abort();
     observer.disconnect();
     observed.clear();
@@ -284,5 +290,5 @@
   }
   app.addEventListener("sui:stop", stop, { signal: listeners.signal });
   window.addEventListener("pagehide", stop, { signal: listeners.signal });
-  window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); });
+  window.addEventListener("pageshow", event => { if (event.persisted) location.reload(); }, { signal: listeners.signal });
 })();

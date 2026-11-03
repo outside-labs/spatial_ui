@@ -86,7 +86,7 @@ class ASGITests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(saved.json["form"]["status"], "saved")
             self.assertIn("Saves: 1", saved.json["markup"])
             self.assertIn("Saves: 0", (await second.page()).text)
-            for path in ("/_spatial/runtime.js", "/_spatial/theme.css"):
+            for path in ("/_spatial/runtime.js", "/_spatial/live.js", "/_spatial/theme.css"):
                 self.assertEqual((await request(app, path)).status, 200)
                 head = await request(app, path, "HEAD")
                 self.assertEqual((head.status, head.body), (200, b""))

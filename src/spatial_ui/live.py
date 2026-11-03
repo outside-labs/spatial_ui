@@ -1,6 +1,6 @@
 """Explicit same-origin configuration for the read-only resource event profile."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 
 from .rest import BindingError, KEY, PATH, ResourceSpec
@@ -53,3 +53,18 @@ class LiveConfig:
         if len(result.encode("utf-8")) > 65536:
             raise BindingError("Live configuration exceeds its size limit.")
         return result
+
+
+@dataclass(frozen=True, slots=True)
+class LiveBinding:
+    """Typed template directive; only projected configuration reaches markup."""
+
+    config: LiveConfig
+    spec: ResourceSpec
+    baseline: dict
+    declaration: str = field(init=False)
+
+    def __post_init__(self):
+        if not isinstance(self.config, LiveConfig):
+            raise BindingError("Select an explicit LiveConfig.")
+        object.__setattr__(self, "declaration", self.config.declaration(self.spec, self.baseline))

@@ -2,6 +2,7 @@
 
 from spatial_ui import Component, Field, FieldError, FormBinding, FormResult, FormSchema, html
 from spatial_ui.forms import NAME
+from spatial_ui.live import LiveBinding, LiveConfig
 from spatial_ui.rest import BindingError, KEY, ResourceBinding, ResourceClient
 
 ACTIONS = (("save", "Save"), ("load", "Load / refresh"), ("discard", "Discard edits"),
@@ -11,12 +12,15 @@ ACTIONS = (("save", "Save"), ("load", "Load / refresh"), ("discard", "Discard ed
 class ResourceForm(Component):
     """Create one fresh component per browser; clients may share stateless transport."""
 
-    def __init__(self, client: ResourceClient, *, title="Resource editor", labels=None, choices=None, key="resource-editor"):
+    def __init__(self, client: ResourceClient, *, title="Resource editor", labels=None, choices=None, key="resource-editor", live=None):
         if not isinstance(client, ResourceClient) or not isinstance(title, str) or not isinstance(key, str) or not NAME.fullmatch(key):
             raise BindingError("Select a resource client, title and stable form key.")
         if len(client.spec.schema.fields) >= 64 or any(field.name == "operation" for field in client.spec.schema.fields):
             raise BindingError("Reserve one form field named operation for editor actions.")
         self.binding = ResourceBinding(client)
+        if live is not None and not isinstance(live, LiveConfig):
+            raise BindingError("Select an explicit LiveConfig for this editor.")
+        self.live = live
         self.title, self.key = title, key
         self.labels, self.choices = dict(labels or {}), {name: tuple(values) for name, values in (choices or {}).items()}
         names = {field.name for field in client.spec.schema.fields}
@@ -102,12 +106,18 @@ class ResourceForm(Component):
         message = self.last_result.as_dict()["message"]
         revision = self.binding.revision or "unsaved"
         committed = None
+        remote = None
         if self.binding.committed is not None:
             rows = [html(t'<dt>{name}</dt><dd>{str(value)}</dd>') for name, value in self.binding.committed.items()]
             committed = html(t'<details key="committed"><summary>Loaded server value</summary><dl>{rows}</dl></details>')
+            if self.live is not None and self.binding.status != "closed":
+                live_binding = LiveBinding(self.live, self.binding.client.spec, dict(self.binding.committed))
+                remote = html(t'''<aside key="live" live={live_binding}>
+                  <h3>Live server value</h3><p data-live-status role="status" aria-live="polite">Connecting to live updates.</p>
+                  <dl data-live-value></dl></aside>''')
         return html(t'''<section key={f"section-{self.key}"}><h2>{self.title}</h2>
           <form key={self.key} on_form={binding} novalidate>{controls}
             <label for={action_id}>Action</label><select key="operation" id={action_id} name="operation">{actions}</select>
             <button type="submit">Apply</button>
-          </form><p role="status" aria-live="polite">{message}</p><p>Revision: {revision}</p>{committed}
+          </form><p role="status" aria-live="polite">{message}</p><p>Revision: {revision}</p>{committed}{remote}
         </section>''')

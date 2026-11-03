@@ -8,6 +8,7 @@ from types import MappingProxyType
 
 from spatial_ui.layout import Layout
 from spatial_ui.forms import FormBinding
+from spatial_ui.live import LiveBinding
 from spatial_ui.templates import (
     KEY, VOID, Element, Fragment, Node, TemplateError, Text,
     validate_attribute, validate_tag, validate_tree,
@@ -72,6 +73,10 @@ class _Renderer:
             attributes.append(f' data-sui-key="{node.key}"')
         if node.motion:
             attributes.append(f' data-sui-motion="{node.motion.duration}" data-sui-easing="{node.motion.easing}"')
+        if node.live is not None:
+            if node.tag != "aside" or node.key is None or not isinstance(node.live, LiveBinding):
+                raise TemplateError("live requires a keyed aside and typed binding")
+            attributes.append(f' data-sui-live="{escape(node.live.declaration, quote=True)}"')
         if node.on_click is not None:
             if node.tag != "button":
                 raise TemplateError("on_click requires a semantic button")

@@ -28,7 +28,7 @@ def _document(app, entry, snapshot):
         f'<meta name="sui-token" content="{entry.csrf}">'
         '<link rel="stylesheet" href="/_spatial/theme.css">'
         f'<style id="sui-layout" nonce="{entry.nonce}">{snapshot.css}</style>'
-        '<script defer src="/_spatial/runtime.js"></script></head><body>'
+        '<script type="module" src="/_spatial/runtime.js"></script></head><body>'
         f'<div id="sui-app" data-version="{snapshot.version}">{snapshot.markup}</div>'
         '<p id="sui-status" role="status" aria-live="polite"></p>'
         '<noscript>Enable JavaScript to use Python event handlers.</noscript>'
@@ -101,7 +101,7 @@ class App:
         if type(port) is not int or not 0 <= port <= 65535:
             raise ValueError("port must be an integer between 0 and 65535")
         app = self
-        runtime = files("spatial_ui").joinpath("static", "runtime.js").read_bytes()
+        assets = {name: files("spatial_ui").joinpath("static", name).read_bytes() for name in ("runtime.js", "live.js")}
 
         class Handler(BaseHTTPRequestHandler):
             def setup(self):
@@ -155,8 +155,8 @@ class App:
             def do_GET(self):
                 if not self._host():
                     return
-                if self.path == "/_spatial/runtime.js":
-                    self._send(200, runtime, "text/javascript; charset=utf-8")
+                if self.path in ("/_spatial/runtime.js", "/_spatial/live.js"):
+                    self._send(200, assets[self.path.rsplit("/", 1)[1]], "text/javascript; charset=utf-8")
                     return
                 if self.path == "/_spatial/theme.css":
                     self._send(200, app.stylesheet, "text/css; charset=utf-8")

@@ -90,14 +90,14 @@ class ASGIApp:
     async def __aenter__(self):
         if self._executor is not None:
             raise RuntimeError("ASGI UI is already started")
-        runtime = files("spatial_ui").joinpath("static", "runtime.js").read_bytes()
+        assets = {name: files("spatial_ui").joinpath("static", name).read_bytes() for name in ("runtime.js", "live.js")}
         self._loop, self._pid = asyncio.get_running_loop(), os.getpid()
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="spatial-ui")
         self._idle = asyncio.Event()
         self._idle.set()
         self._closing, self._close_task = False, None
         self._cookie_name = ("__Host-spatial_" if self._secure else "spatial_") + secrets.token_hex(8)
-        self._runtime = runtime
+        self._assets = assets
         return self
 
     def _owner(self):
@@ -196,7 +196,7 @@ class ASGIApp:
                 raise _Reject(421, "unrecognized application host")
             path, method = scope["path"], scope["method"]
             if scope.get("root_path") or scope.get("query_string") or path not in (
-                    "/", "/_spatial/runtime.js", "/_spatial/theme.css", "/_spatial/event"):
+                    "/", "/_spatial/runtime.js", "/_spatial/live.js", "/_spatial/theme.css", "/_spatial/event"):
                 raise _Reject(404, "not found")
             if method not in (("POST",) if path == "/_spatial/event" else ("GET", "HEAD")):
                 raise _Reject(405, "method not allowed")
@@ -282,8 +282,8 @@ class ASGIApp:
         return self._response(status, json.dumps({"error": message}))
 
     def _dispatch(self, path, headers, body):
-        if path == "/_spatial/runtime.js":
-            return self._response(200, self._runtime, "text/javascript; charset=utf-8")
+        if path in ("/_spatial/runtime.js", "/_spatial/live.js"):
+            return self._response(200, self._assets[path.rsplit("/", 1)[1]], "text/javascript; charset=utf-8")
         if path == "/_spatial/theme.css":
             return self._response(200, self._app.stylesheet, "text/css; charset=utf-8")
         identifier = self._cookie(headers)

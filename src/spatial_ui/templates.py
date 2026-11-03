@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 from spatial_ui.geometry import Rect
 from spatial_ui.forms import FormBinding
+from spatial_ui.live import LiveBinding
 from spatial_ui.layout import Centered, Grid, Placement, Relative
 from spatial_ui.motion import Transition
 
@@ -93,6 +94,7 @@ class Element:
     on_click: Callable[[], None] | None = None
     motion: Transition | None = None
     on_form: FormBinding | None = None
+    live: LiveBinding | None = None
 
 
 type Node = Text | Element
@@ -217,13 +219,13 @@ class _Compiler(HTMLParser):
             if name in names:
                 raise TemplateError(f"duplicate attribute {name!r}")
             names.add(name)
-            if name in {"layout", "place", "on_click", "motion", "on_form"}:
+            if name in {"layout", "place", "on_click", "motion", "on_form", "live"}:
                 match = self.marker.fullmatch(raw or "")
                 if not match:
                     raise TemplateError(f"{name} requires one typed interpolation")
                 value = self.value(match)
                 expected = {"layout": (Grid,), "place": (Rect, Relative, Centered),
-                            "on_click": (), "motion": (Transition,), "on_form": (FormBinding,)}[name]
+                            "on_click": (), "motion": (Transition,), "on_form": (FormBinding,), "live": (LiveBinding,)}[name]
                 if (name == "on_click" and not callable(value)) or (name != "on_click" and not isinstance(value, expected)):
                     raise TemplateError(f"invalid {name} directive")
                 directives[name] = value
