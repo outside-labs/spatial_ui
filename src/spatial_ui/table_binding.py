@@ -263,7 +263,7 @@ class TableBrowser(Component):
                 movement.append(html(t'<button key={_key("move", name)} type="button" on_click={earlier} disabled={binding.closed}>Move {name} earlier</button>'))
         return html(t'''<section key={self.key} data-table-controls="true"><p>{binding.client.mode}</p>
           <form key={self.key + "-form"} on_form={form}><label for={search_id}>Search table</label>
-            <input key="search" id={search_id} name="search" type="text" maxlength="256" value={binding.term}/><button type="submit">Search</button></form>
+            <input key="search" id={search_id} name="search" type="text" maxlength="256" value={binding.term}><button type="submit">Search</button></form>
           <fieldset><legend>Displayed columns</legend>{visibility}{movement}</fieldset>
           <button type="button" on_click={binding.previous} disabled={binding.closed or len(binding.cursors) == 1}>Previous page</button>
           <button type="button" on_click={binding.next} disabled={binding.status != "ready" or not binding.page.next_cursor}>Next page</button>

@@ -104,7 +104,7 @@ class TableBindingTests(unittest.TestCase):
         component = TableBrowser(client, page_size=2)
         session = Session(component)
         settle(component.binding)
-        session.render()
+        self.assertIn('value=""', session.render().markup)
         component.view.select("row-0", "title")
         original = client.query
         client.query = lambda query, cancel: (_ for _ in ()).throw(TableError("private failure"))
