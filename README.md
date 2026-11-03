@@ -131,9 +131,24 @@ movement/timeline composition left to the roadmap.
 
 The browser preserves keyed nodes, focus, and live input/textarea/select values
 through updates. Supply stable sibling keys (or unique HTML IDs) for controls
-whose identity matters. Cross-parent moves and server-controlled form editing
-are future work. Scratchpad text stays in the DOM and is not persisted on reload
-or sent to Python by the click-only transport.
+whose identity matters. Cross-parent moves remain future work. Scratchpad text
+stays in the DOM; typed form controls use the explicit boundary described below.
+
+## Typed forms and REST resources in the unreleased source
+
+`Field`, `FormSchema` and `FormBinding` declare exact input/change/submit values
+for a keyed `on_form` form. Synchronous callbacks receive immutable `FormEvent`
+values and return `FormResult`; text and booleans are bounded and validation
+preserves drafts and focuses public field errors. See the
+[form contract](docs/form-events-v1.md).
+
+The optional `spatial_ui.rest` module provides a direct HTTP(S) transport and
+per-editor REST binding with checked revisions. `ResourceForm` from
+`spatial_ui.resource_form` supplies an explicit create/load/edit/delete workflow,
+refresh/merge and discard actions. It requires no API package in the UI process.
+The [REST profile](docs/rest-binding.md) records supported immutable development
+revisions, visibility, cancellation and session constraints. The published 0.1.0
+artifacts do not include these additions.
 
 ## Compatibility
 
