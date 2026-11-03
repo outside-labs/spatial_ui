@@ -7,6 +7,7 @@ from html import escape
 from types import MappingProxyType
 
 from spatial_ui.layout import Layout
+from spatial_ui.forms import FormBinding
 from spatial_ui.templates import (
     KEY, VOID, Element, Fragment, Node, TemplateError, Text,
     validate_attribute, validate_tag, validate_tree,
@@ -17,13 +18,13 @@ from spatial_ui.templates import (
 class Rendered:
     markup: str
     css: str
-    events: Mapping[str, Callable[[], None]]
+    events: Mapping[str, Callable[[], None] | FormBinding]
 
 
 class _Renderer:
     def __init__(self):
         self.styles: list[str] = []
-        self.events: dict[str, Callable[[], None]] = {}
+        self.events: dict[str, Callable[[], None] | FormBinding] = {}
         self.grids = 0
 
     def children(self, nodes: tuple[Node, ...], *, in_grid: bool = False) -> str:
@@ -78,6 +79,13 @@ class _Renderer:
                 token = secrets.token_urlsafe(24)
                 self.events[token] = node.on_click
                 attributes.append(f' data-sui-click="{token}"')
+        if node.on_form is not None:
+            if node.tag != "form" or node.key is None or not isinstance(node.on_form, FormBinding):
+                raise TemplateError("on_form requires a keyed form and typed binding")
+            self.form_controls(node)
+            token = secrets.token_urlsafe(24)
+            self.events[token] = node.on_form
+            attributes.append(f' data-sui-form="{token}"')
         identifier = None
         if node.layout:
             identifier = f"g{self.grids}"
@@ -104,6 +112,30 @@ class _Renderer:
             key = f' data-sui-key="{node.key}"' if node.key else ""
             result = f'<div data-sui-viewport="{identifier}"{key}>{result}</div>'
         return result
+
+    def form_controls(self, node):
+        declared = {field.name: field for field in node.on_form.schema.fields}
+        found = set()
+        def visit(children):
+            for child in children:
+                if not isinstance(child, Element):
+                    continue
+                if child.tag in {"input", "textarea", "select"}:
+                    attrs = dict(child.attributes)
+                    name = attrs.get("name")
+                    field = declared.get(name)
+                    kind = ("checkbox" if attrs.get("type") == "checkbox" else "text") if child.tag == "input" else child.tag
+                    if field is None or name in found or field.kind != kind:
+                        raise TemplateError("form controls must match unique declared fields")
+                    if child.tag == "input" and attrs.get("type", "text") not in {"text", "checkbox"} or "multiple" in attrs:
+                        raise TemplateError("unsupported form control kind")
+                    if (attrs.get("disabled") is True) != field.disabled:
+                        raise TemplateError("disabled controls must match their declaration")
+                    found.add(name)
+                visit(child.children)
+        visit(node.children)
+        if found != declared.keys():
+            raise TemplateError("every declared field requires a control")
 
 
 def render(fragment: Fragment) -> Rendered:
