@@ -59,6 +59,7 @@ class FormTests(unittest.TestCase):
         for body in (b'{"event":"a","version":1,"version":2}', b'{"event":"a","version":true}',
                      b'{"event":"a","version":1,"payload":{"x":1,"x":2}}',
                      b'{"event":"a","version":1,"payload":NaN}', b'\xff', b'[]', b' ' * 16385,
+                     b'{"event":"a","version":1,"payload":null}',
                      b'{"event":"a","version":9007199254740992}'):
             with self.subTest(body=body[:80]), self.assertRaises(FormError):
                 decode_event(body)
