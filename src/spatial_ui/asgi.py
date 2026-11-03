@@ -128,7 +128,7 @@ class ASGIApp:
         await self._idle.wait()
         executor = self._executor
         try:
-            await asyncio.wrap_future(executor.submit(self._app._sessions.clear))
+            await asyncio.wrap_future(executor.submit(self._app.close))
         finally:
             executor.shutdown(wait=True, cancel_futures=True)
             self._executor = self._loop = self._pid = None
@@ -196,9 +196,9 @@ class ASGIApp:
                 raise _Reject(421, "unrecognized application host")
             path, method = scope["path"], scope["method"]
             if scope.get("root_path") or scope.get("query_string") or path not in (
-                    "/", "/_spatial/runtime.js", "/_spatial/live.js", "/_spatial/theme.css", "/_spatial/event"):
+                    "/", "/_spatial/runtime.js", "/_spatial/live.js", "/_spatial/theme.css", "/_spatial/event", "/_spatial/close"):
                 raise _Reject(404, "not found")
-            if method not in (("POST",) if path == "/_spatial/event" else ("GET", "HEAD")):
+            if method not in (("POST",) if path in ("/_spatial/event", "/_spatial/close") else ("GET", "HEAD")):
                 raise _Reject(405, "method not allowed")
             if method == "POST":
                 if _one(headers, b"origin") != self.origin.encode("ascii"):
@@ -298,11 +298,16 @@ class ASGIApp:
             except OverflowError:
                 raise _Reject(503, "session capacity reached; try again later") from None
             except BaseException:
-                self._app._sessions.pop(identifier, None)
+                self._app._drop(identifier)
                 raise
         supplied = _one(headers, b"x-spatial-token") or b""
         if entry is None or not hmac.compare_digest(supplied, entry.csrf.encode("ascii")):
             raise _Reject(403, "session expired or invalid request token; refresh the page")
+        if path == "/_spatial/close":
+            if body != b"{}":
+                raise _Reject(400, "invalid close payload")
+            self._app._drop(identifier)
+            return self._response(204, b"")
         try:
             payload = decode_event(body)
             snapshot = entry.session.dispatch(payload["event"], payload["version"], payload.get("payload"))

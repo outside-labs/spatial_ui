@@ -90,9 +90,22 @@ class Session:
         self._version = 0
         self._callbacks: dict[str, Callable[[], None] | FormBinding] = {}
         self._lock = threading.RLock()
+        self._closed = False
+
+    def close(self):
+        with self._lock:
+            if self._closed:
+                return
+            self._closed = True
+            self._callbacks.clear()
+            callback = getattr(self.component, "close", None)
+            if callback:
+                callback()
 
     def render(self) -> Snapshot:
         with self._lock:
+            if self._closed:
+                raise EventError("session is closed")
             self._callbacks = {}
             self._version += 1
             rendered = render(self.component.render())

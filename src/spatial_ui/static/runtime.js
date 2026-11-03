@@ -19,6 +19,10 @@ import { LiveConnections } from "./live.js";
   const listeners = new AbortController();
   const forms = new WeakMap();
   const compositions = new WeakMap();
+  const tablePoll = setInterval(() => {
+    if (stopped || failed || queued || compositions.get(document.activeElement) === true) return;
+    app.querySelector("button[data-table-poll]")?.click();
+  }, 150);
   const live = new LiveConnections(app);
   live.scan();
   const stateOf = form => {
@@ -301,6 +305,11 @@ import { LiveConnections } from "./live.js";
     if (stopped) return;
     stopped = true;
     request?.abort();
+    clearInterval(tablePoll);
+    if (app.querySelector("[data-table-controls]")) {
+      fetch("/_spatial/close", { method: "POST", credentials: "same-origin", keepalive: true,
+        headers: { "Content-Type": "application/json", "X-Spatial-Token": csrf }, body: "{}" }).catch(() => {});
+    }
     live.stop();
     listeners.abort();
     observer.disconnect();

@@ -78,11 +78,20 @@ class App:
         self.clock = clock
         self._sessions: dict[str, _BrowserSession] = {}
 
+    def _drop(self, identifier):
+        entry = self._sessions.pop(identifier, None)
+        if entry:
+            entry.session.close()
+
+    def close(self):
+        for identifier in list(self._sessions):
+            self._drop(identifier)
+
     def _lookup(self, identifier: str | None) -> _BrowserSession | None:
         now = self.clock()
         for key in list(self._sessions):
             if now - self._sessions[key].touched >= self.session_ttl:
-                del self._sessions[key]
+                self._drop(key)
         entry = self._sessions.get(identifier)
         if entry:
             entry.touched = now
@@ -184,7 +193,7 @@ class App:
                     return
                 except Exception:
                     if identifier:
-                        app._sessions.pop(identifier, None)
+                        app._drop(identifier)
                     self._error(500, "page render failed")
                     return
                 # Grid CSS is generated only from validated names, integers, and enums.
@@ -198,7 +207,7 @@ class App:
                 hostname = self._host()
                 if not hostname:
                     return
-                if self.path != "/_spatial/event":
+                if self.path not in ("/_spatial/event", "/_spatial/close"):
                     self._error(404, "not found")
                     return
                 if self.headers.get("Origin") != f"http://{hostname}":
@@ -224,6 +233,12 @@ class App:
                     body = self.rfile.read(int(lengths[0]))
                     if len(body) != int(lengths[0]):
                         raise ValueError("incomplete body")
+                    if self.path == "/_spatial/close":
+                        if body != b"{}":
+                            raise ValueError("invalid close payload")
+                        app._drop(identifier)
+                        self._send(204, b"")
+                        return
                     payload = decode_event(body)
                 except TimeoutError:
                     self._error(408, "request timed out")
@@ -250,7 +265,13 @@ class App:
                                            "form": snapshot.form_result.as_dict() if snapshot.form_result else None}),
                            extra=(self._session_cookie(identifier),))
 
-        return _LoopbackHTTPServer((host, port), Handler)
+        class Server(_LoopbackHTTPServer):
+            def server_close(self):
+                try:
+                    app.close()
+                finally:
+                    super().server_close()
+        return Server((host, port), Handler)
 
     def run(self, port: int = 8000) -> None:
         with self.make_server(port) as server:

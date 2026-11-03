@@ -73,7 +73,7 @@ class HTTPTransport:
     operations, not DNS or the total request. Cancellation does not undo writes.
     """
 
-    def __init__(self, origin: str, *, timeout: float = 5, max_body: int = 65536, headers=()):
+    def __init__(self, origin: str, *, timeout: float = 5, max_body: int = 65536, headers=(), max_response_body=None):
         try:
             url = urlsplit(origin)
             port = url.port
@@ -87,6 +87,9 @@ class HTTPTransport:
             raise BindingError("Select a socket timeout between zero and 30 seconds.")
         if type(max_body) is not int or not 1 <= max_body <= 65536:
             raise BindingError("Select a body bound between 1 and 65536 bytes.")
+        max_response_body = max_body if max_response_body is None else max_response_body
+        if type(max_response_body) is not int or not 1 <= max_response_body <= 4194304:
+            raise BindingError("Select a response bound between 1 and 4194304 bytes.")
         selected = {}
         for name, value in headers:
             if type(name) is not str or not re.fullmatch(r"[A-Za-z0-9-]+", name) or name.lower() in {"host", "content-length", "content-type", "if-match", "connection", "cookie", "transfer-encoding"} or name.lower() in selected:
@@ -96,6 +99,7 @@ class HTTPTransport:
             selected[name.lower()] = value
         self._url, self._port, self._headers = url, port, selected
         self.timeout, self.max_body = timeout, max_body
+        self.max_response_body = max_response_body
 
     def request(self, method, path, *, data=None, revision=None):
         if type(method) is not str or method not in {"GET", "POST", "PATCH", "DELETE"} or type(path) is not str or not re.fullmatch(r"/[A-Za-z0-9/_?&=.%~-]{0,8191}", path) or path.startswith("//"):
@@ -116,8 +120,8 @@ class HTTPTransport:
         try:
             connection.request(method, path, body=body, headers=headers)
             response = connection.getresponse()
-            raw = response.read(self.max_body + 1)
-            if len(raw) > self.max_body:
+            raw = response.read(self.max_response_body + 1)
+            if len(raw) > self.max_response_body:
                 raise TransportError("Response exceeded its byte bound.")
             etags = response.headers.get_all("ETag", [])
             revision = None
