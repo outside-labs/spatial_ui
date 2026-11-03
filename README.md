@@ -164,3 +164,9 @@ uv run --locked python scripts/verify_distributions.py --tag v0.1.0
 Publishing a GitHub release with a tag matching `v<package version>` runs
 `.github/workflows/release.yaml`. It tests and verifies both distributions,
 then publishes them to PyPI using trusted publishing in the `pypi` environment.
+
+## Typed form contract
+
+The [form event contract](docs/form-events-v1.md) selects bounded input/change/
+submit values, validation ownership and draft/conflict behavior for future form
+transports. The current development server remains a click transport.

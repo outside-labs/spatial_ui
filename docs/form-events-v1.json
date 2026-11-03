@@ -1,0 +1,16 @@
+{
+  "contract": "spatial-form/1",
+  "declared_fields": {"title": "text", "done": "checkbox"},
+  "accepted": [
+    {"event": "opaque-token", "version": 3, "payload": {"kind": "input", "fields": {"title": "Draft"}}},
+    {"event": "opaque-token", "version": 3, "payload": {"kind": "change", "fields": {"done": false}}},
+    {"event": "opaque-token", "version": 3, "payload": {"kind": "submit", "fields": {"title": "", "done": true}}}
+  ],
+  "refused": [
+    {"reason": "unknown_field", "payload": {"kind": "submit", "fields": {"hidden": "value"}}},
+    {"reason": "field_type", "payload": {"kind": "change", "fields": {"done": "false"}}},
+    {"reason": "field_type", "payload": {"kind": "input", "fields": {"title": null}}},
+    {"reason": "one_field", "payload": {"kind": "input", "fields": {"title": "Draft", "done": true}}},
+    {"reason": "unknown_payload_field", "payload": {"kind": "submit", "fields": {}, "callback": "arbitrary"}}
+  ]
+}
