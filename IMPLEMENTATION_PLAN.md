@@ -78,7 +78,7 @@ class Counter(Component):
 
 Version 0.1.0 packages the first milestone under the MIT license, with Python
 3.14+ and no third-party runtime dependencies. The public repository is
-[`outside-labs/spatial_ui`](https://github.com/outside-labs/spatial_ui), the PyPI
+[`wispsy/spatial_ui`](https://github.com/wispsy/spatial_ui), the PyPI
 distribution is `spatial-ui`, and imports use `spatial_ui`.
 
 Before 1.0, minor releases may change the public API; patch releases are intended

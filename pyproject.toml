@@ -20,9 +20,9 @@ classifiers = [
 ]
 
 [project.urls]
-Repository = "https://github.com/outside-labs/spatial_ui"
-Issues = "https://github.com/outside-labs/spatial_ui/issues"
-Changelog = "https://github.com/outside-labs/spatial_ui/blob/main/CHANGELOG.md"
+Repository = "https://github.com/wispsy/spatial_ui"
+Issues = "https://github.com/wispsy/spatial_ui/issues"
+Changelog = "https://github.com/wispsy/spatial_ui/blob/main/CHANGELOG.md"
 
 [project.scripts]
 spatial-ui = "spatial_ui.cli:main"
@@ -34,6 +34,6 @@ build-backend = "uv_build"
 [dependency-groups]
 browser-tests = ["playwright==1.64.0"]
 reference-tests = [
-    "compose-application @ git+https://github.com/outside-labs/compose_application.git@dc49317ca006230e69b5784c9f3697c9e51a3e9e",
-    "expose-api[backpack] @ git+https://github.com/outside-labs/expose_api.git@22e7afb7638440b52c08affa4c4c3c1da1bccfaf",
+    "compose-application @ git+https://github.com/wispsy/compose_application.git@dc49317ca006230e69b5784c9f3697c9e51a3e9e",
+    "expose-api[backpack] @ git+https://github.com/wispsy/expose_api.git@22e7afb7638440b52c08affa4c4c3c1da1bccfaf",
 ]

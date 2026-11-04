@@ -2,7 +2,7 @@
 
 This optional browser consumer adopts Expose API source
 `22e7afb7638440b52c08affa4c4c3c1da1bccfaf` and its
-[single-record event profile](https://github.com/outside-labs/expose_api/blob/22e7afb7638440b52c08affa4c4c3c1da1bccfaf/docs/events.md).
+[single-record event profile](https://github.com/wispsy/expose_api/blob/22e7afb7638440b52c08affa4c4c3c1da1bccfaf/docs/events.md).
 Import `LiveConfig` explicitly from `spatial_ui.live`. Base installation needs
 no extra runtime package. Browser and installed acceptance are separate checks.
 

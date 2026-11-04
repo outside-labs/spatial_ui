@@ -5,7 +5,7 @@ requires-python = ">=3.14"
 [[package]]
 name = "backpack-store"
 version = "0.1.0"
-source = { git = "https://github.com/outside-labs/backpack.git?rev=54f5a1e883fcc32f8d87cc553dc83dae0434300d#54f5a1e883fcc32f8d87cc553dc83dae0434300d" }
+source = { git = "https://github.com/wispsy/backpack.git?rev=54f5a1e883fcc32f8d87cc553dc83dae0434300d#54f5a1e883fcc32f8d87cc553dc83dae0434300d" }
 
 [package.optional-dependencies]
 enforce-type = [
@@ -15,7 +15,7 @@ enforce-type = [
 [[package]]
 name = "compose-application"
 version = "0.1.0.dev0"
-source = { git = "https://github.com/outside-labs/compose_application.git?rev=dc49317ca006230e69b5784c9f3697c9e51a3e9e#dc49317ca006230e69b5784c9f3697c9e51a3e9e" }
+source = { git = "https://github.com/wispsy/compose_application.git?rev=dc49317ca006230e69b5784c9f3697c9e51a3e9e#dc49317ca006230e69b5784c9f3697c9e51a3e9e" }
 
 [[package]]
 name = "enforce-type"
@@ -29,7 +29,7 @@ wheels = [
 [[package]]
 name = "expose-api"
 version = "0.1.0"
-source = { git = "https://github.com/outside-labs/expose_api.git?rev=22e7afb7638440b52c08affa4c4c3c1da1bccfaf#22e7afb7638440b52c08affa4c4c3c1da1bccfaf" }
+source = { git = "https://github.com/wispsy/expose_api.git?rev=22e7afb7638440b52c08affa4c4c3c1da1bccfaf#22e7afb7638440b52c08affa4c4c3c1da1bccfaf" }
 
 [package.optional-dependencies]
 backpack = [
@@ -133,8 +133,8 @@ reference-tests = [
 [package.metadata.requires-dev]
 browser-tests = [{ name = "playwright", specifier = "==1.64.0" }]
 reference-tests = [
-    { name = "compose-application", git = "https://github.com/outside-labs/compose_application.git?rev=dc49317ca006230e69b5784c9f3697c9e51a3e9e" },
-    { name = "expose-api", extras = ["backpack"], git = "https://github.com/outside-labs/expose_api.git?rev=22e7afb7638440b52c08affa4c4c3c1da1bccfaf" },
+    { name = "compose-application", git = "https://github.com/wispsy/compose_application.git?rev=dc49317ca006230e69b5784c9f3697c9e51a3e9e" },
+    { name = "expose-api", extras = ["backpack"], git = "https://github.com/wispsy/expose_api.git?rev=22e7afb7638440b52c08affa4c4c3c1da1bccfaf" },
 ]
 
 [[package]]
